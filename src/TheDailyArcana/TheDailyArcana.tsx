@@ -205,6 +205,7 @@ export default function TheDailyArcana() {
       <Collection
         history={mirror?.history ?? []}
         todayKey={today}
+        playerName={profile?.name ?? null}
         onClose={() => setPhase(lockedToday ? 'done' : 'idle')}
       />
     );

@@ -608,3 +608,64 @@
     width: auto;
   }
 }
+
+// ─── Card detail overlay (tap a drawn card in the deck) ───────────
+
+.da-detail {
+  position: fixed; inset: 0;
+  background: rgba(6, 3, 6, 0.92);
+  z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  padding: 34px 28px;
+  overflow-y: auto;
+  animation: da-fade-in 200ms ease-out;
+
+  &__card {
+    position: relative;
+    width: 100%; max-width: 340px;
+    margin: auto;
+  }
+  &__close {
+    position: absolute; top: -12px; right: -6px;
+    width: 34px; height: 34px;
+    background: transparent; border: none;
+    color: @cream-2; font-size: 17px; line-height: 1;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    z-index: 2;
+  }
+  &__topmeta {
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Montserrat', sans-serif; font-weight: 600;
+    font-size: 9px; letter-spacing: 0.4em;
+    color: @cream-3; text-transform: uppercase;
+    margin-bottom: 16px;
+    span:first-child { color: @pink; font-weight: 700; }
+  }
+  &__img {
+    width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.7);
+    margin-bottom: 18px;
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  }
+  &__name {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-weight: 400; font-size: 40px; line-height: 0.95;
+    color: @cream; margin-bottom: 12px;
+  }
+  &__kw {
+    font-family: 'Montserrat', sans-serif; font-weight: 500;
+    font-size: 9.5px; letter-spacing: 0.34em;
+    color: @cream-3; text-transform: uppercase;
+    margin-bottom: 14px;
+    .dot { color: @pink; margin: 0 6px; }
+  }
+  &__text {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 18px; line-height: 1.5; color: @cream; margin: 0;
+    &::first-letter { font-size: 1.7em; color: @pink; margin-right: 0.04em; font-weight: 500; }
+  }
+}
+@keyframes da-fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
