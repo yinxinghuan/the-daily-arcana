@@ -1,0 +1,497 @@
+// The Daily Arcana — v5 editorial visual system.
+// `.da-` prefix. Flat ground, no gradients. Rhythm via type + hairlines.
+//
+// Tokens
+//   #0A0508  ground — flat dark
+//   #F4E8D0  cream — primary ink
+//   #F5B1C7  AlterU pink — single accent ink (now/today/CTA)
+
+@ground:  #0A0508;
+@cream:   #F4E8D0;
+@pink:    #F5B1C7;
+@line:    rgba(244, 232, 208, 0.16);
+@line-d:  rgba(244, 232, 208, 0.07);
+@cream-2: rgba(244, 232, 208, 0.62);
+@cream-3: rgba(244, 232, 208, 0.38);
+@cream-4: rgba(244, 232, 208, 0.2);
+
+.da-root {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: @ground;
+  color: @cream;
+  font-family: 'Cormorant Garamond', -apple-system, serif;
+}
+
+// ─── Brand strip (every screen) ───────────────────────────────────
+
+.da-topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  z-index: 4;
+  padding: 26px 26px 0;
+  display: flex; align-items: center; justify-content: space-between;
+
+  &__l, &__r {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 8.5px; letter-spacing: 0.4em;
+    color: @cream-3; text-transform: uppercase;
+  }
+  &__l .pink-dot {
+    display: inline-block; width: 4px; height: 4px;
+    background: @pink; border-radius: 50%;
+    margin: 0 8px 1.5px 0; vertical-align: middle;
+  }
+}
+.da-toprule {
+  position: absolute; top: 56px; left: 26px; right: 26px;
+  height: 0; border-top: 0.5px solid @line;
+  z-index: 4;
+}
+
+// ─── Shared editorial primitives ──────────────────────────────────
+
+.da-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: @cream-3;
+}
+.da-eyebrow--pink { color: @pink; }
+
+.da-link-cta {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: @pink;
+  background: none; border: none; padding: 0;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 12px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  .arrow {
+    display: inline-block; width: 36px; height: 0;
+    border-top: 1px solid @pink; position: relative;
+    &::after {
+      content: ''; position: absolute; right: -1px; top: -3px;
+      width: 6px; height: 6px;
+      border-right: 1px solid @pink; border-top: 1px solid @pink;
+      transform: rotate(45deg);
+    }
+  }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.da-link-nav {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: @cream-2;
+  background: none; border: none; padding: 6px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  .arr { color: @pink; margin: 0 8px; }
+}
+
+// ─── Card (1:1 square painted artifact) ───────────────────────────
+
+.da-card {
+  position: relative;
+  width: 288px; height: 288px;
+  overflow: hidden;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.8),
+    0 0 28px rgba(0, 0, 0, 0.6);
+
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+// ─── Phase machine root regions ───────────────────────────────────
+//
+// All screens share the same .da-page outer container. Each phase
+// renders its own children inside.
+
+.da-page {
+  position: absolute; inset: 0;
+  padding: 86px 28px 30px;
+  display: flex; flex-direction: column;
+}
+
+// ─── IDLE ─────────────────────────────────────────────────────────
+
+.da-idle {
+  &__head {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    color: @cream-3; font-size: 13px; letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  &__title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-weight: 400;
+    font-size: 76px; line-height: 0.92;
+    color: @cream;
+    margin: 0 0 22px;
+    .word { display: block; }
+    .acc { color: @pink; }
+  }
+  &__meta {
+    display: flex; align-items: center;
+    margin-bottom: 28px;
+    .rule {
+      width: 38px; height: 0;
+      border-top: 0.8px solid @pink; margin-right: 14px;
+    }
+    .text {
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 9.5px; letter-spacing: 0.45em;
+      color: @cream-2; text-transform: uppercase;
+    }
+  }
+  &__deckwrap {
+    flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  &__foot {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding-top: 20px;
+    border-top: 0.5px solid @line-d;
+    &-l {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      color: @cream-3; font-size: 13px;
+    }
+  }
+}
+
+.da-deck {
+  background: none; border: none; padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  width: 260px; height: 260px;
+  position: relative;
+  filter: drop-shadow(0 28px 50px rgba(0,0,0,0.75))
+          drop-shadow(0 0 36px rgba(245,177,199,0.10));
+  animation: da-breathe 4.8s ease-in-out infinite;
+
+  img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    pointer-events: none;
+  }
+
+  &:active { transform: translateY(2px) scale(0.99); }
+}
+@keyframes da-breathe {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+// First-load hint — pulse below CTA, fades on first touch
+.da-firsthint {
+  position: absolute;
+  left: 0; right: 0; bottom: 96px;
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 17px; letter-spacing: 0.06em;
+  color: @cream-2;
+  pointer-events: none;
+  animation: da-firsthint 2s ease-in-out infinite;
+  z-index: 3;
+}
+@keyframes da-firsthint {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50%      { opacity: 0.95; transform: translateY(-3px); }
+}
+
+// ─── DRAWING / GENERATING ─────────────────────────────────────────
+
+.da-gen {
+  &__intro {
+    margin-bottom: 8px;
+  }
+  &__intro-l {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    color: @cream-3; font-size: 14px; letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  &__intro-title {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-weight: 400; font-size: 42px; line-height: 1;
+    color: @cream;
+    margin-bottom: 4px;
+  }
+  &__intro-roman {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 0.5em;
+    color: @pink; text-transform: uppercase;
+    margin-top: 12px;
+  }
+  &__centre {
+    flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  &__foot {
+    display: flex; align-items: center; gap: 14px;
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 17px; color: @cream-2;
+  }
+}
+
+// Painting placeholder (warm cream square + ghost name breathing)
+.da-paint {
+  position: relative;
+  width: 280px; height: 280px;
+  background:
+    radial-gradient(ellipse at 50% 50%, #E8D5A8 0%, #C9A57A 50%, #6E4B25 100%);
+  box-shadow: 0 26px 48px rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  animation: da-card-enter 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  &__ghost {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 56px; color: rgba(110, 75, 25, 0.36);
+    animation: da-ghost 3.4s ease-in-out infinite;
+    text-transform: capitalize;
+  }
+}
+@keyframes da-ghost {
+  0%, 100% { opacity: 0.22; }
+  50%      { opacity: 0.6; }
+}
+@keyframes da-card-enter {
+  0%   { transform: translateY(40px) scale(0.96); opacity: 0; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+.da-loader {
+  display: inline-flex; gap: 5px;
+  span {
+    width: 5px; height: 5px;
+    background: @pink; border-radius: 50%;
+    animation: da-dot 1.4s ease-in-out infinite;
+    &:nth-child(2) { animation-delay: 0.18s; }
+    &:nth-child(3) { animation-delay: 0.36s; }
+  }
+}
+@keyframes da-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40%           { opacity: 1;    transform: scale(1.15); }
+}
+
+// ─── REVEAL / DONE ────────────────────────────────────────────────
+
+.da-reveal {
+  &__topmeta {
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Montserrat', sans-serif; font-weight: 600;
+    font-size: 9px; letter-spacing: 0.42em;
+    color: @cream-3; text-transform: uppercase;
+    margin-bottom: 22px;
+    .right { color: @pink; font-weight: 700; }
+  }
+  &__cardwrap {
+    display: flex; justify-content: center;
+    margin-bottom: 22px;
+    animation: da-card-reveal 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  &__head {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 14px;
+  }
+  &__roman {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-weight: 400; font-size: 64px; line-height: 0.9;
+    color: @pink; letter-spacing: -0.02em;
+  }
+  &__head-rule {
+    flex: 0 0 28px; height: 0;
+    border-top: 0.8px solid @cream-4;
+    align-self: center; margin-top: 14px;
+  }
+  &__name {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-weight: 400; font-size: 44px;
+    color: @cream; line-height: 0.92;
+    letter-spacing: 0.005em;
+  }
+  &__kw {
+    font-family: 'Montserrat', sans-serif; font-weight: 500;
+    font-size: 10px; letter-spacing: 0.36em;
+    color: @cream-3; text-transform: uppercase;
+    margin-bottom: 12px;
+    .dot { color: @pink; margin: 0 6px; }
+  }
+  // Tonight's communal count — "16 others drew this tonight"
+  &__commune {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 14px;
+    color: @cream-3;
+    margin-bottom: 16px;
+    .num { color: @pink; font-weight: 500; }
+  }
+  &__text {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 19px; line-height: 1.5;
+    color: @cream;
+    margin: 0 0 18px;
+
+    &::first-letter {
+      font-size: 1.7em; color: @pink;
+      margin-right: 0.04em; font-weight: 500;
+    }
+  }
+  &__nav {
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 0.5px solid @line-d;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+}
+@keyframes da-card-reveal {
+  0%   { transform: rotateY(180deg) scale(0.95); opacity: 0.6; }
+  100% { transform: rotateY(0) scale(1); opacity: 1; }
+}
+
+// ─── COLLECTION ───────────────────────────────────────────────────
+
+.da-collection {
+  position: fixed; inset: 0;
+  background: @ground;
+  z-index: 5;
+  display: flex; flex-direction: column;
+  animation: da-coll-in 320ms ease-out;
+
+  &__hd {
+    padding: 86px 28px 18px;
+  }
+  &__hd-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  &__back {
+    background: transparent; border: none;
+    color: @cream-2; cursor: pointer; padding: 0;
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 9.5px; letter-spacing: 0.42em;
+    text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    .arr { color: @pink; margin-right: 4px; }
+  }
+  &__hd-r {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 9px; letter-spacing: 0.42em;
+    color: @cream-3; text-transform: uppercase;
+  }
+  &__hd-eyebrow {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 9px; letter-spacing: 0.5em;
+    color: @cream-3; text-transform: uppercase;
+    margin-top: 18px; margin-bottom: 12px;
+  }
+  &__hd-title {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-weight: 400; font-size: 44px; line-height: 1;
+    color: @cream;
+    margin-bottom: 14px;
+  }
+  &__hd-count {
+    font-family: 'Montserrat', sans-serif; font-weight: 500;
+    font-size: 10px; letter-spacing: 0.5em;
+    color: @cream-3; text-transform: uppercase;
+    strong { color: @pink; font-weight: 800; }
+  }
+  &__hd-divider {
+    margin-top: 18px; height: 0;
+    border-top: 0.5px solid @line;
+  }
+
+  &__grid {
+    padding: 22px 18px 30px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px 14px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  &__cell {
+    display: flex; flex-direction: column; align-items: stretch;
+    gap: 8px;
+
+    &-face {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      position: relative;
+      overflow: hidden;
+    }
+    &-name {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 13.5px; color: @cream;
+      text-align: left; width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      padding-left: 1px;
+    }
+    &-date {
+      font-family: 'Montserrat', sans-serif; font-weight: 500;
+      font-size: 8px; letter-spacing: 0.32em;
+      color: @cream-3; text-transform: uppercase;
+      padding-left: 1px;
+    }
+
+    &.is-drawn {
+      .da-collection__cell-face {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.55);
+        img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      }
+    }
+    &.is-today {
+      .da-collection__cell-face {
+        outline: 1.4px solid @pink;
+        outline-offset: 2px;
+      }
+      .da-collection__cell-date {
+        color: @pink; font-weight: 800; letter-spacing: 0.4em;
+      }
+    }
+    &.is-undrawn {
+      .da-collection__cell-face {
+        background: transparent;
+        border: 0.6px solid @line;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .da-collection__cell-name { color: @cream-4; }
+      .da-collection__cell-date { color: @cream-3; opacity: 0.5; }
+    }
+
+    &__numeral {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 30px; color: @cream-4;
+      letter-spacing: 0.02em;
+    }
+  }
+}
+@keyframes da-coll-in {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Watermark ────────────────────────────────────────────────────
+
+.da-watermark {
+  position: absolute;
+  left: 50%; bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.5;
+
+  img {
+    display: block;
+    height: 16px;
+    width: auto;
+  }
+}

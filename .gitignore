@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+*.log
+.vite
+_qa_*.png
+_ref_square.png
+_preview_assets/
+preview.html
+gen_poster.py

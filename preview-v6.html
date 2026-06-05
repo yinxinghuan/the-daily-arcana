@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daily Arcana — v6 Preview · Apothecary Product</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@500;600;700;800;900&display=swap">
+<style>
+:root {
+  --ground:  #0A0508;
+  --line:    rgba(244, 232, 208, 0.16);
+  --line-d:  rgba(244, 232, 208, 0.07);
+  --pink:    #F5B1C7;
+  --gold:    #C9A961;
+  --cream:   #F4E8D0;
+  --cream-2: rgba(244, 232, 208, 0.62);
+  --cream-3: rgba(244, 232, 208, 0.38);
+  --cream-4: rgba(244, 232, 208, 0.2);
+
+  /* Per-card signature colors — pulled from the 8 painted card hues */
+  --c-fool:     #C9879B;
+  --c-magician: #324C8E;
+  --c-emperor:  #993238;
+  --c-lovers:   #D88AA4;
+  --c-strength: #C7903D;
+  --c-wheel:    #6B83C7;
+  --c-devil:    #C95A52;
+  --c-sun:      #E58A38;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--ground); color: var(--cream);
+  font-family: 'Inter', 'Cormorant Garamond', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   Catalog chrome
+   ============================================================ */
+.catalog-header {
+  text-align: center; padding: 60px 24px 32px;
+}
+.catalog-header .kicker {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 10px; letter-spacing: 0.5em;
+  color: var(--cream-3); text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.catalog-header h1 {
+  margin: 0;
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 54px; letter-spacing: 0.04em; line-height: 0.92;
+  color: var(--cream); text-transform: uppercase;
+}
+.catalog-header h1 .alt { color: var(--pink); }
+.catalog-header .note {
+  margin: 20px auto 0; max-width: 600px;
+  font-size: 14px; line-height: 1.55; color: var(--cream-3);
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+}
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+  gap: 64px 36px;
+  padding: 64px 36px 100px;
+  max-width: 1760px; margin: 0 auto;
+}
+.screen { display: flex; flex-direction: column; align-items: center; }
+.screen__label {
+  margin-bottom: 20px;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 10px; letter-spacing: 0.4em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.screen__num {
+  display: inline-block; margin-right: 12px;
+  padding: 3px 9px;
+  border: 0.6px solid rgba(244, 232, 208, 0.18); border-radius: 9999px;
+  color: var(--cream-2);
+}
+.phone {
+  width: 390px; height: 812px;
+  border-radius: 40px; overflow: hidden;
+  position: relative;
+  background: var(--ground);
+  box-shadow:
+    0 40px 70px rgba(0,0,0,0.7),
+    0 0 0 9px #050204,
+    0 0 0 10px #1c0e16;
+}
+
+/* ============================================================
+   Top brand strip — same as v5 for continuity
+   ============================================================ */
+.top-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  z-index: 4;
+  padding: 26px 26px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.top-bar__l, .top-bar__r {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8.5px; letter-spacing: 0.4em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.top-bar__l .pink-dot {
+  display: inline-block; width: 4px; height: 4px;
+  background: var(--pink); border-radius: 50%;
+  margin: 0 8px 1.5px 0; vertical-align: middle;
+}
+.top-rule {
+  position: absolute; top: 56px; left: 26px; right: 26px;
+  height: 0; border-top: 0.5px solid var(--line);
+  z-index: 4;
+}
+
+/* ============================================================
+   Rotated side text — Souk Factory ingredient list move
+   ============================================================ */
+.side-text {
+  position: absolute;
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 8.5px; letter-spacing: 0.42em;
+  color: var(--cream-3); text-transform: uppercase;
+  white-space: nowrap;
+}
+.side-text--l {
+  left: 18px; top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center;
+}
+.side-text--r {
+  right: 18px; top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  transform-origin: center;
+}
+.side-text .dot { color: var(--pink); margin: 0 8px; }
+
+/* ============================================================
+   Variant pill — apothecary product label
+   Each card has its own signature color; bold display sans name
+   ============================================================ */
+.variant-pill {
+  display: inline-flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  padding: 11px 24px 13px;
+  border-radius: 9999px;
+  background: var(--variant);
+  color: var(--cream);
+  position: relative;
+}
+.variant-pill__sub {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8px; letter-spacing: 0.45em;
+  text-transform: uppercase; opacity: 0.85;
+}
+.variant-pill__name {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 22px; letter-spacing: 0.08em;
+  text-transform: uppercase; line-height: 1;
+}
+.variant-pill--lovers   { --variant: var(--c-lovers);   }
+.variant-pill--fool     { --variant: var(--c-fool);     }
+.variant-pill--magician { --variant: var(--c-magician); }
+.variant-pill--emperor  { --variant: var(--c-emperor);  }
+.variant-pill--strength { --variant: var(--c-strength); }
+.variant-pill--wheel    { --variant: var(--c-wheel);    }
+.variant-pill--devil    { --variant: var(--c-devil);    }
+.variant-pill--sun      { --variant: var(--c-sun);      }
+
+/* ============================================================
+   Apothecary stamp — heraldic die-cut idle artifact
+   Used in place of the painted deck back when we want PRODUCT energy
+   ============================================================ */
+.stamp {
+  position: relative;
+  width: 240px;
+  background: var(--cream);
+  color: #2A0F18;
+  clip-path: polygon(
+    18% 0, 82% 0,
+    82% 4%, 88% 4%, 88% 8%, 96% 8%,
+    100% 14%, 100% 86%,
+    96% 92%, 88% 92%, 88% 96%, 82% 96%, 82% 100%,
+    18% 100%, 18% 96%, 12% 96%, 12% 92%, 4% 92%,
+    0 86%, 0 14%,
+    4% 8%, 12% 8%, 12% 4%, 18% 4%
+  );
+  padding: 26px 24px 22px;
+  text-align: center;
+  filter: drop-shadow(0 24px 48px rgba(0,0,0,0.6));
+  animation: breathe 4.8s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.stamp__arch {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8.5px; letter-spacing: 0.42em;
+  color: #5C1F2C; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.stamp__arch .ornament { display: inline-block; margin: 0 6px;
+                         color: var(--c-lovers); }
+
+.stamp__seal {
+  position: relative;
+  width: 168px; height: 168px;
+  margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.stamp__seal-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1.2px solid #5C1F2C;
+}
+.stamp__seal-ring--inner {
+  inset: 8px;
+  border: 0.6px solid rgba(92, 31, 44, 0.55);
+}
+.stamp__seal-text {
+  position: absolute; inset: -3px;
+  pointer-events: none;
+}
+.stamp__seal-mark {
+  position: relative;
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 56px; letter-spacing: 0.04em; line-height: 0.85;
+  color: #5C1F2C;
+  text-transform: uppercase;
+  text-align: center;
+}
+.stamp__seal-mark small {
+  display: block;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8.5px; letter-spacing: 0.4em;
+  margin-top: 8px; opacity: 0.7;
+}
+
+.stamp__corner {
+  position: absolute; width: 10px; height: 10px;
+  background: var(--c-lovers); border-radius: 50%;
+}
+.stamp__corner--tl { top: 18%; left: 12px; }
+.stamp__corner--tr { top: 18%; right: 12px; }
+.stamp__corner--bl { bottom: 18%; left: 12px; }
+.stamp__corner--br { bottom: 18%; right: 12px; }
+
+.stamp__pill {
+  display: inline-flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 9px 22px 11px;
+  border-radius: 9999px;
+  background: #5C1F2C;
+  color: var(--cream);
+  margin-top: 4px;
+}
+.stamp__pill-name {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 17px; letter-spacing: 0.1em;
+  text-transform: uppercase; line-height: 1;
+}
+.stamp__pill-sub {
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 7px; letter-spacing: 0.45em;
+  text-transform: uppercase; opacity: 0.8;
+}
+.stamp__foot {
+  margin-top: 8px;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 10px; color: rgba(44, 26, 18, 0.55);
+}
+
+/* ============================================================
+   Shared bits
+   ============================================================ */
+.h-italic {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-weight: 400; color: var(--cream);
+}
+
+.link-cta {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: var(--cream);
+  background: none; border: none; padding: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.link-cta .arrow {
+  display: inline-block; width: 36px; height: 0;
+  border-top: 1px solid var(--pink); position: relative;
+}
+.link-cta .arrow::after {
+  content: ''; position: absolute; right: -1px; top: -3px;
+  width: 6px; height: 6px;
+  border-right: 1px solid var(--pink); border-top: 1px solid var(--pink);
+  transform: rotate(45deg);
+}
+.link-cta--pink { color: var(--pink); }
+.link-nav {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: var(--cream-2);
+  background: none; border: none; padding: 6px 0; cursor: pointer;
+}
+.link-nav .arr { color: var(--pink); margin: 0 8px; }
+
+.card {
+  position: relative; width: 300px; height: 300px; overflow: hidden;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.8),
+    0 0 28px rgba(0, 0, 0, 0.6);
+}
+.card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* ============================================================
+   Screen 1 — IDLE  ·  apothecary stamp as deck back
+   ============================================================ */
+.s1 {
+  position: absolute; inset: 0;
+  padding: 86px 30px 36px;
+  display: flex; flex-direction: column;
+}
+.s1__head {
+  text-align: center; margin-bottom: 14px;
+}
+.s1__head-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px; letter-spacing: 0.5em;
+  color: var(--pink); text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.s1__head-display {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 56px; letter-spacing: 0.04em;
+  color: var(--cream); text-transform: uppercase; line-height: 0.92;
+}
+.s1__head-italic {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 24px; color: var(--cream-2);
+  margin-top: 6px;
+}
+.s1__metaline {
+  display: flex; align-items: center; justify-content: center;
+  margin: 14px 0 8px;
+}
+.s1__metaline .rule {
+  width: 38px; height: 0;
+  border-top: 0.8px solid var(--pink); margin: 0 14px;
+}
+.s1__metaline .text {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px; letter-spacing: 0.45em;
+  color: var(--cream-2); text-transform: uppercase;
+}
+
+.s1__stampwrap {
+  flex: 1 1 auto;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.s1__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--line-d);
+}
+.s1__foot-l {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 13px; color: var(--cream-3);
+}
+
+/* ============================================================
+   Screen 2 — PAINTING
+   ============================================================ */
+.s2 {
+  position: absolute; inset: 0;
+  padding: 88px 30px 80px;
+  display: flex; flex-direction: column;
+}
+.s2__intro { margin-bottom: 8px; }
+.s2__intro-l {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 14px; color: var(--cream-3);
+  margin-bottom: 8px;
+}
+.s2__intro-row {
+  display: flex; align-items: baseline; gap: 14px;
+}
+.s2__intro-title {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 36px; letter-spacing: 0.04em;
+  color: var(--cream); text-transform: uppercase;
+  line-height: 1;
+}
+.s2__intro-roman {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 26px; letter-spacing: 0.06em;
+  color: var(--pink); text-transform: uppercase;
+}
+.s2__centre { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+.card-painting {
+  position: relative; width: 280px; height: 280px;
+  background:
+    radial-gradient(ellipse at 50% 50%, #E8D5A8 0%, #C9A57A 50%, #6E4B25 100%);
+  box-shadow: 0 26px 48px rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+}
+.card-painting__ghost {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 56px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(110, 75, 25, 0.42);
+  animation: ghost 3.4s ease-in-out infinite;
+}
+@keyframes ghost { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+
+.s2__foot {
+  display: flex; align-items: center; gap: 14px;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 17px; color: var(--cream-2);
+}
+.s2__loader { display: inline-flex; gap: 5px; }
+.s2__loader span {
+  width: 5px; height: 5px; background: var(--pink); border-radius: 50%;
+  animation: dot 1.4s ease-in-out infinite;
+}
+.s2__loader span:nth-child(2) { animation-delay: 0.18s; }
+.s2__loader span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes dot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40%           { opacity: 1;    transform: scale(1.15); }
+}
+
+/* ============================================================
+   Screen 3 — REVEAL  ·  variant pill anchors the card
+   ============================================================ */
+.s3 {
+  position: absolute; inset: 0;
+  padding: 86px 28px 32px;
+  display: flex; flex-direction: column;
+}
+.s3__topmeta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 9px; letter-spacing: 0.42em;
+  color: var(--cream-3); text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.s3__topmeta .right { color: var(--pink); font-weight: 700; }
+.s3__cardwrap {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 12px;
+}
+.s3__cardwrap .card { width: 288px; height: 288px; }
+.s3__pillwrap {
+  display: flex; justify-content: center;
+  margin-top: -22px; /* overlap card edge */
+  margin-bottom: 22px;
+  position: relative; z-index: 2;
+}
+.s3__name-zh {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-weight: 400; font-size: 32px;
+  color: var(--cream);
+  margin-bottom: 14px;
+}
+
+.s3__text {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 19px; line-height: 1.5;
+  color: var(--cream); margin: 0 0 18px;
+}
+.s3__text::first-letter {
+  font-size: 1.7em; color: var(--c-lovers);
+  margin-right: 0.04em; font-weight: 500;
+}
+
+.s3__nav {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 0.5px solid var(--line-d);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ============================================================
+   Screen 4 — DECK  ·  variant pill anchors each cell
+   ============================================================ */
+.s4 {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+}
+.s4__hd { padding: 86px 28px 18px; }
+.s4__hd-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.s4__back {
+  background: transparent; border: none;
+  color: var(--cream-2); cursor: pointer; padding: 0;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em; text-transform: uppercase;
+}
+.s4__back .arr { color: var(--pink); margin-right: 6px; }
+.s4__row-r {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px; letter-spacing: 0.42em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.s4__hd-eyebrow {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px; letter-spacing: 0.5em;
+  color: var(--cream-3); text-transform: uppercase;
+  margin-top: 18px; margin-bottom: 14px;
+}
+.s4__hd-title {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 50px; letter-spacing: 0.04em;
+  color: var(--cream); text-transform: uppercase; line-height: 1;
+  margin-bottom: 14px;
+}
+.s4__hd-count {
+  font-family: 'Montserrat', sans-serif; font-weight: 500;
+  font-size: 10px; letter-spacing: 0.5em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.s4__hd-count strong {
+  color: var(--pink); font-weight: 800;
+}
+.s4__hd-divider {
+  margin-top: 18px; height: 0;
+  border-top: 0.5px solid var(--line);
+}
+
+.s4__grid {
+  padding: 22px 18px 30px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 12px;
+  flex: 1 1 auto; overflow-y: auto;
+}
+.s4__cell {
+  display: flex; flex-direction: column; align-items: stretch; gap: 0;
+  position: relative;
+}
+.s4__cell-face {
+  width: 100%; aspect-ratio: 1 / 1;
+  position: relative; overflow: hidden;
+}
+.s4__cell.is-drawn .s4__cell-face {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.55);
+}
+.s4__cell.is-drawn .s4__cell-face img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+}
+.s4__cell.is-undrawn .s4__cell-face {
+  background: transparent;
+  border: 0.6px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+}
+.s4__cell.is-undrawn .s4__numeral {
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 30px; color: var(--cream-4);
+  letter-spacing: 0.04em;
+}
+.s4__cell-pill {
+  margin-top: -10px;
+  align-self: center;
+  position: relative; z-index: 2;
+  padding: 5px 11px 6px;
+  border-radius: 9999px;
+  background: var(--variant);
+  color: var(--cream);
+  font-family: 'Anton', sans-serif; font-weight: 400;
+  font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.45);
+}
+.s4__cell.is-today .s4__cell-face {
+  outline: 1.4px solid var(--pink);
+  outline-offset: 2px;
+}
+.s4__cell.is-today .s4__cell-pill {
+  box-shadow: 0 0 0 1.2px var(--pink), 0 6px 14px rgba(245,177,199,0.4);
+}
+.s4__cell-date {
+  margin-top: 8px;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif; font-weight: 500;
+  font-size: 8px; letter-spacing: 0.32em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.s4__cell.is-today .s4__cell-date {
+  color: var(--pink); font-weight: 800; letter-spacing: 0.4em;
+}
+.s4__cell.is-undrawn .s4__cell-date {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 11px; color: var(--cream-4); letter-spacing: 0;
+  text-transform: none;
+}
+.s4__cell.is-undrawn .s4__cell-name {
+  text-align: center;
+  margin-top: 4px;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 13px; color: var(--cream-4);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Variant color assignments per card */
+.v-fool     { --variant: var(--c-fool);     }
+.v-magician { --variant: var(--c-magician); }
+.v-emperor  { --variant: var(--c-emperor);  }
+.v-lovers   { --variant: var(--c-lovers);   }
+.v-strength { --variant: var(--c-strength); }
+.v-wheel    { --variant: var(--c-wheel);    }
+.v-devil    { --variant: var(--c-devil);    }
+.v-sun      { --variant: var(--c-sun);      }
+
+/* watermark */
+.watermark {
+  position: absolute; left: 50%; bottom: 18px;
+  transform: translateX(-50%); z-index: 5;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8px; letter-spacing: 0.55em;
+  color: var(--cream-4); pointer-events: none;
+}
+
+.catalog-foot {
+  text-align: center; padding: 32px 24px 64px;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em;
+  color: #5a4f55; text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="catalog-header">
+  <div class="kicker">CONCEPT PREVIEW · v6 · APOTHECARY PRODUCT · 2026.06.05</div>
+  <h1>The Daily <span class="alt">Arcana</span></h1>
+  <div class="note">
+    Reference branch — Muld + Souk Factory product-label DNA woven in. Bold Anton display sans
+    + per-card monochromatic variant pill + apothecary deck stamp + rotated side ingredient text.
+    Same painted cards, much more heritage-product personality.
+  </div>
+</div>
+
+<div class="catalog-grid">
+
+  <!-- ============================================================
+       1 · IDLE  ·  apothecary stamp deck
+       ============================================================ -->
+  <div class="screen">
+    <div class="screen__label"><span class="screen__num">01</span> IDLE</div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA · CO</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+
+      <!-- Rotated side text (Souk Factory move) -->
+      <div class="side-text side-text--l">
+        Daily Ritual <span class="dot">·</span> One Pull <span class="dot">·</span> No Refund
+      </div>
+      <div class="side-text side-text--r">
+        Major Arcana <span class="dot">·</span> 22 Plates <span class="dot">·</span> Hand-painted
+      </div>
+
+      <div class="s1">
+        <div class="s1__head">
+          <div class="s1__head-eyebrow">A LATE-NIGHT TAROT</div>
+          <div class="s1__head-display">Tonight,</div>
+          <div class="s1__head-italic">a card for you.</div>
+        </div>
+        <div class="s1__metaline">
+          <div class="rule"></div>
+          <div class="text">One pull · between dusk and dusk</div>
+          <div class="rule"></div>
+        </div>
+
+        <div class="s1__stampwrap">
+          <div class="stamp">
+            <div class="stamp__corner stamp__corner--tl"></div>
+            <div class="stamp__corner stamp__corner--tr"></div>
+            <div class="stamp__corner stamp__corner--bl"></div>
+            <div class="stamp__corner stamp__corner--br"></div>
+
+            <div class="stamp__arch">
+              ALTERU <span class="ornament">✦</span> ARCANA <span class="ornament">✦</span> CO
+            </div>
+
+            <div class="stamp__seal">
+              <div class="stamp__seal-ring"></div>
+              <div class="stamp__seal-ring stamp__seal-ring--inner"></div>
+              <!-- Curved text around the seal -->
+              <svg class="stamp__seal-text" viewBox="0 0 200 200">
+                <defs>
+                  <path id="curveTop" d="M 28 100 A 72 72 0 0 1 172 100" fill="none"/>
+                  <path id="curveBot" d="M 28 102 A 72 72 0 0 0 172 102" fill="none"/>
+                </defs>
+                <text font-family="Montserrat, sans-serif" font-weight="700"
+                      font-size="9" letter-spacing="4" fill="#5C1F2C">
+                  <textPath href="#curveTop" startOffset="50%" text-anchor="middle">DAILY READING</textPath>
+                </text>
+                <text font-family="Montserrat, sans-serif" font-weight="700"
+                      font-size="9" letter-spacing="4" fill="#5C1F2C">
+                  <textPath href="#curveBot" startOffset="50%" text-anchor="middle">EST 2026</textPath>
+                </text>
+              </svg>
+              <div class="stamp__seal-mark">
+                ARCANA
+                <small>22 PLATES</small>
+              </div>
+            </div>
+
+            <div class="stamp__pill">
+              <div class="stamp__pill-sub">TONIGHT'S CARD</div>
+              <div class="stamp__pill-name">DRAW ONE</div>
+            </div>
+
+            <div class="stamp__foot">No 0001 — Major Arcana</div>
+          </div>
+        </div>
+
+        <div class="s1__foot">
+          <div class="s1__foot-l">tap the stamp</div>
+          <button class="link-cta link-cta--pink">Draw <span class="arrow"></span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       2 · PAINTING
+       ============================================================ -->
+  <div class="screen">
+    <div class="screen__label"><span class="screen__num">02</span> PAINTING</div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA · CO</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+
+      <div class="side-text side-text--l">
+        Painting <span class="dot">·</span> Gouache <span class="dot">·</span> 3 Minutes
+      </div>
+      <div class="side-text side-text--r">
+        VI <span class="dot">·</span> Lovers <span class="dot">·</span> Major Arcana
+      </div>
+
+      <div class="s2">
+        <div class="s2__intro">
+          <div class="s2__intro-l">you drew —</div>
+          <div class="s2__intro-row">
+            <div class="s2__intro-title">Lovers</div>
+            <div class="s2__intro-roman">VI</div>
+          </div>
+        </div>
+
+        <div class="s2__centre">
+          <div class="card-painting">
+            <div class="card-painting__ghost">Lovers</div>
+          </div>
+        </div>
+
+        <div class="s2__foot">
+          <em>painting your card</em>
+          <div class="s2__loader"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       3 · REVEAL  ·  card + variant pill anchor
+       ============================================================ -->
+  <div class="screen">
+    <div class="screen__label"><span class="screen__num">03</span> REVEAL</div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA · CO</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+
+      <div class="side-text side-text--l">
+        Your Reading <span class="dot">·</span> Tonight <span class="dot">·</span> 06.05.2026
+      </div>
+      <div class="side-text side-text--r">
+        Union <span class="dot">·</span> Choice <span class="dot">·</span> Harmony
+      </div>
+
+      <div class="s3">
+        <div class="s3__topmeta">
+          <div>Your Reading</div>
+          <div class="right">VI · Major Arcana</div>
+        </div>
+
+        <div class="s3__cardwrap">
+          <div class="card">
+            <img src="_preview_assets/lovers.webp" alt="The Lovers">
+          </div>
+        </div>
+
+        <div class="s3__pillwrap">
+          <div class="variant-pill variant-pill--lovers">
+            <div class="variant-pill__sub">No VI · Major Arcana</div>
+            <div class="variant-pill__name">The Lovers</div>
+          </div>
+        </div>
+
+        <div class="s3__name-zh">恋人</div>
+
+        <p class="s3__text">
+          今天一个小小的选择, 会形塑一条很长的路, Xinghuan。选你胸口已经知道的那个。
+        </p>
+
+        <div class="s3__nav">
+          <button class="link-nav"><span class="arr">←</span>Deck</button>
+          <button class="link-nav">Share<span class="arr">→</span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       4 · DECK  ·  each cell has its variant pill
+       ============================================================ -->
+  <div class="screen">
+    <div class="screen__label"><span class="screen__num">04</span> DECK</div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA · CO</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+
+      <div class="s4">
+        <div class="s4__hd">
+          <div class="s4__hd-row">
+            <button class="s4__back"><span class="arr">←</span>Back</button>
+            <div class="s4__row-r">Your Deck</div>
+          </div>
+          <div class="s4__hd-eyebrow">A LATE-NIGHT TAROT</div>
+          <h2 class="s4__hd-title">Major Arcana</h2>
+          <div class="s4__hd-count"><strong>VIII</strong> &nbsp; of &nbsp; XXII</div>
+          <div class="s4__hd-divider"></div>
+        </div>
+
+        <div class="s4__grid">
+          <!-- Drawn -->
+          <div class="s4__cell is-drawn v-fool">
+            <div class="s4__cell-face"><img src="_preview_assets/fool.webp" alt=""></div>
+            <div class="s4__cell-pill">FOOL</div>
+            <div class="s4__cell-date">May 18</div>
+          </div>
+          <div class="s4__cell is-drawn v-magician">
+            <div class="s4__cell-face"><img src="_preview_assets/magician.webp" alt=""></div>
+            <div class="s4__cell-pill">MAGICIAN</div>
+            <div class="s4__cell-date">May 22</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">II</span></div>
+            <div class="s4__cell-name">Priestess</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">III</span></div>
+            <div class="s4__cell-name">Empress</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn v-emperor">
+            <div class="s4__cell-face"><img src="_preview_assets/emperor.webp" alt=""></div>
+            <div class="s4__cell-pill">EMPEROR</div>
+            <div class="s4__cell-date">May 29</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">V</span></div>
+            <div class="s4__cell-name">Hierophant</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn is-today v-lovers">
+            <div class="s4__cell-face"><img src="_preview_assets/lovers.webp" alt=""></div>
+            <div class="s4__cell-pill">LOVERS</div>
+            <div class="s4__cell-date">Today</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">VII</span></div>
+            <div class="s4__cell-name">Chariot</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn v-strength">
+            <div class="s4__cell-face"><img src="_preview_assets/strength.webp" alt=""></div>
+            <div class="s4__cell-pill">STRENGTH</div>
+            <div class="s4__cell-date">May 31</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">IX</span></div>
+            <div class="s4__cell-name">Hermit</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn v-wheel">
+            <div class="s4__cell-face"><img src="_preview_assets/wheel.webp" alt=""></div>
+            <div class="s4__cell-pill">WHEEL</div>
+            <div class="s4__cell-date">Jun 02</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XI</span></div>
+            <div class="s4__cell-name">Justice</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XII</span></div>
+            <div class="s4__cell-name">Hanged Man</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XIII</span></div>
+            <div class="s4__cell-name">Death</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XIV</span></div>
+            <div class="s4__cell-name">Temperance</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn v-devil">
+            <div class="s4__cell-face"><img src="_preview_assets/devil.webp" alt=""></div>
+            <div class="s4__cell-pill">DEVIL</div>
+            <div class="s4__cell-date">Jun 04</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XVI</span></div>
+            <div class="s4__cell-name">Tower</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XVII</span></div>
+            <div class="s4__cell-name">Star</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XVIII</span></div>
+            <div class="s4__cell-name">Moon</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-drawn v-sun">
+            <div class="s4__cell-face"><img src="_preview_assets/sun.webp" alt=""></div>
+            <div class="s4__cell-pill">SUN</div>
+            <div class="s4__cell-date">May 25</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XX</span></div>
+            <div class="s4__cell-name">Judgement</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+          <div class="s4__cell is-undrawn">
+            <div class="s4__cell-face"><span class="s4__numeral">XXI</span></div>
+            <div class="s4__cell-name">World</div>
+            <div class="s4__cell-date">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="catalog-foot">
+  ANTON DISPLAY · APOTHECARY STAMP · MONOCHROMATIC VARIANT PILLS · ROTATED INGREDIENT TEXT · ONE INK OF PINK
+</div>
+
+</body>
+</html>

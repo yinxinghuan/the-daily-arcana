@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deck Back — 4 Alternatives</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Montserrat:wght@500;600;700;800&display=swap">
+<style>
+:root {
+  --ground:  #0A0508;
+  --line:    rgba(244, 232, 208, 0.16);
+  --line-d:  rgba(244, 232, 208, 0.07);
+  --pink:    #F5B1C7;
+  --cream:   #F4E8D0;
+  --cream-2: rgba(244, 232, 208, 0.62);
+  --cream-3: rgba(244, 232, 208, 0.38);
+  --cream-4: rgba(244, 232, 208, 0.2);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--ground); color: var(--cream);
+  font-family: 'Cormorant Garamond', serif;
+  -webkit-font-smoothing: antialiased;
+}
+.head {
+  text-align: center; padding: 60px 24px 24px;
+}
+.head .kicker {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 10px; letter-spacing: 0.5em;
+  color: var(--cream-3); text-transform: uppercase; margin-bottom: 16px;
+}
+.head h1 {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-weight: 400; font-size: 44px;
+  color: var(--cream);
+}
+.head h1 .alt { color: var(--pink); }
+.head p {
+  margin: 16px auto 0; max-width: 580px;
+  font-size: 14px; line-height: 1.55; color: var(--cream-3);
+  font-style: italic;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+  gap: 56px 32px;
+  padding: 56px 32px 80px;
+  max-width: 1760px; margin: 0 auto;
+}
+
+.option { display: flex; flex-direction: column; align-items: center; }
+.option__cap {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.option__letter {
+  font-family: 'Montserrat', sans-serif; font-weight: 800;
+  font-size: 18px; color: var(--pink); letter-spacing: 0.1em;
+}
+.option__name {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 20px; color: var(--cream); margin-top: 2px;
+}
+.option__desc {
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 9px; letter-spacing: 0.42em;
+  color: var(--cream-3); text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.phone {
+  width: 390px; height: 812px;
+  border-radius: 40px; overflow: hidden;
+  position: relative;
+  background: var(--ground);
+  box-shadow:
+    0 40px 70px rgba(0,0,0,0.7),
+    0 0 0 9px #050204,
+    0 0 0 10px #1c0e16;
+}
+.top-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  z-index: 4;
+  padding: 26px 26px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.top-bar__l, .top-bar__r {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8.5px; letter-spacing: 0.4em;
+  color: var(--cream-3); text-transform: uppercase;
+}
+.top-bar__l .pink-dot {
+  display: inline-block; width: 4px; height: 4px;
+  background: var(--pink); border-radius: 50%;
+  margin: 0 8px 1.5px 0; vertical-align: middle;
+}
+.top-rule {
+  position: absolute; top: 56px; left: 26px; right: 26px;
+  height: 0; border-top: 0.5px solid var(--line); z-index: 4;
+}
+
+.s1 {
+  position: absolute; inset: 0;
+  padding: 88px 30px 36px;
+  display: flex; flex-direction: column;
+}
+.s1__head {
+  font-style: italic; color: var(--cream-3);
+  font-size: 13px; letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.s1__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-weight: 400;
+  font-size: 76px; line-height: 0.92;
+  color: var(--cream); margin: 0 0 22px;
+}
+.s1__title .acc { color: var(--pink); }
+.s1__title .word { display: block; }
+.s1__metaline {
+  display: flex; align-items: center; margin-bottom: 28px;
+}
+.s1__metaline .rule {
+  width: 38px; height: 0;
+  border-top: 0.8px solid var(--pink); margin-right: 14px;
+}
+.s1__metaline .text {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.45em;
+  color: var(--cream-2); text-transform: uppercase;
+}
+.s1__deckwrap {
+  flex: 1 1 auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.deck-back {
+  width: 264px; height: 264px;
+  display: block; position: relative;
+  filter: drop-shadow(0 28px 50px rgba(0,0,0,0.75))
+          drop-shadow(0 0 36px rgba(245,177,199,0.10));
+  animation: breathe 4.8s ease-in-out infinite;
+}
+.deck-back img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.s1__foot {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--line-d);
+}
+.s1__foot-l {
+  font-style: italic; color: var(--cream-3); font-size: 12px;
+}
+.link-cta {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 0.42em;
+  text-transform: uppercase; color: var(--pink);
+  background: none; border: none; padding: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 12px;
+}
+.link-cta .arrow {
+  display: inline-block; width: 36px; height: 0;
+  border-top: 1px solid var(--pink); position: relative;
+}
+.link-cta .arrow::after {
+  content: ''; position: absolute; right: -1px; top: -3px;
+  width: 6px; height: 6px;
+  border-right: 1px solid var(--pink); border-top: 1px solid var(--pink);
+  transform: rotate(45deg);
+}
+.watermark {
+  position: absolute; left: 50%; bottom: 18px;
+  transform: translateX(-50%); z-index: 5;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 8px; letter-spacing: 0.55em;
+  color: var(--cream-4); pointer-events: none;
+}
+
+.foot {
+  text-align: center; padding: 32px 24px 64px;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.42em;
+  color: #5a4f55; text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="kicker">DECK BACK · 4 ALTERNATIVES · PICK ONE</div>
+  <h1>Pick the <span class="alt">cover</span></h1>
+  <p>
+    Same idle screen, four deck-back treatments. Each is a real gen-image output using the same
+    composition spine — only the medium / color changes. Pick one (A · B · C · D) and I'll wire
+    it into both editorial (v5) and apothecary (v6) branches.
+  </p>
+</div>
+
+<div class="grid">
+
+  <!-- A · Gold engraved -->
+  <div class="option">
+    <div class="option__cap">
+      <span class="option__letter">A</span>
+      <div class="option__name">Gold engraving on indigo</div>
+      <div class="option__desc">monochrome line · book-plate</div>
+    </div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+      <div class="s1">
+        <div class="s1__head">a late-night tarot</div>
+        <h1 class="s1__title">
+          <span class="word">Tonight,</span>
+          <span class="word"><span class="acc">a card</span></span>
+          <span class="word">for you.</span>
+        </h1>
+        <div class="s1__metaline">
+          <div class="rule"></div>
+          <div class="text">One pull · between dusk and dusk</div>
+        </div>
+        <div class="s1__deckwrap">
+          <div class="deck-back"><img src="_preview_assets/deck_back_A_engraved.webp" alt=""></div>
+        </div>
+        <div class="s1__foot">
+          <div class="s1__foot-l">tap the deck</div>
+          <button class="link-cta">Draw <span class="arrow"></span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- B · Cream + ink -->
+  <div class="option">
+    <div class="option__cap">
+      <span class="option__letter">B</span>
+      <div class="option__name">Cream &amp; sepia ink</div>
+      <div class="option__desc">two-color · apothecary stamp</div>
+    </div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+      <div class="s1">
+        <div class="s1__head">a late-night tarot</div>
+        <h1 class="s1__title">
+          <span class="word">Tonight,</span>
+          <span class="word"><span class="acc">a card</span></span>
+          <span class="word">for you.</span>
+        </h1>
+        <div class="s1__metaline">
+          <div class="rule"></div>
+          <div class="text">One pull · between dusk and dusk</div>
+        </div>
+        <div class="s1__deckwrap">
+          <div class="deck-back"><img src="_preview_assets/deck_back_B_cream_ink.webp" alt=""></div>
+        </div>
+        <div class="s1__foot">
+          <div class="s1__foot-l">tap the deck</div>
+          <button class="link-cta">Draw <span class="arrow"></span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- C · Cream + pink -->
+  <div class="option">
+    <div class="option__cap">
+      <span class="option__letter">C</span>
+      <div class="option__name">Cream &amp; AlterU pink</div>
+      <div class="option__desc">two-color · brand letterpress</div>
+    </div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+      <div class="s1">
+        <div class="s1__head">a late-night tarot</div>
+        <h1 class="s1__title">
+          <span class="word">Tonight,</span>
+          <span class="word"><span class="acc">a card</span></span>
+          <span class="word">for you.</span>
+        </h1>
+        <div class="s1__metaline">
+          <div class="rule"></div>
+          <div class="text">One pull · between dusk and dusk</div>
+        </div>
+        <div class="s1__deckwrap">
+          <div class="deck-back"><img src="_preview_assets/deck_back_C_cream_pink.webp" alt=""></div>
+        </div>
+        <div class="s1__foot">
+          <div class="s1__foot-l">tap the deck</div>
+          <button class="link-cta">Draw <span class="arrow"></span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+  <!-- D · Full color painted (current v5) -->
+  <div class="option">
+    <div class="option__cap">
+      <span class="option__letter">D</span>
+      <div class="option__name">Full-color painted</div>
+      <div class="option__desc">current v5 · multi-color gouache</div>
+    </div>
+    <div class="phone">
+      <div class="top-bar">
+        <div class="top-bar__l"><span class="pink-dot"></span>ALTERU · ARCANA</div>
+        <div class="top-bar__r">No 0001 · 06.05</div>
+      </div>
+      <div class="top-rule"></div>
+      <div class="s1">
+        <div class="s1__head">a late-night tarot</div>
+        <h1 class="s1__title">
+          <span class="word">Tonight,</span>
+          <span class="word"><span class="acc">a card</span></span>
+          <span class="word">for you.</span>
+        </h1>
+        <div class="s1__metaline">
+          <div class="rule"></div>
+          <div class="text">One pull · between dusk and dusk</div>
+        </div>
+        <div class="s1__deckwrap">
+          <div class="deck-back"><img src="_preview_assets/deck_back.webp" alt=""></div>
+        </div>
+        <div class="s1__foot">
+          <div class="s1__foot-l">tap the deck</div>
+          <button class="link-cta">Draw <span class="arrow"></span></button>
+        </div>
+      </div>
+      <div class="watermark">ALTERU</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">A · GOLD ENGRAVING  ·  B · CREAM + INK  ·  C · CREAM + PINK  ·  D · FULL PAINTED</div>
+
+</body>
+</html>
