@@ -25,6 +25,9 @@ export interface Draw {
   date: DayKey;
   cardId: number;
   imageUrl: string;
+  /** ms epoch. Optional for legacy reads — defaults to 0 when missing.
+   *  Used to display "drawn Xh ago" on revisit. */
+  ts?: number;
 }
 
 export interface ArcanaSave {

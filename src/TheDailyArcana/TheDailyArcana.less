@@ -207,35 +207,79 @@
 // ─── DRAWING / GENERATING ─────────────────────────────────────────
 
 .da-gen {
-  &__intro {
-    margin-bottom: 8px;
-  }
-  &__intro-l {
-    font-family: 'Cormorant Garamond', serif; font-style: italic;
-    color: @cream-3; font-size: 14px; letter-spacing: 0.04em;
-    margin-bottom: 8px;
-  }
-  &__intro-title {
-    font-family: 'Cormorant Garamond', serif; font-style: italic;
-    font-weight: 400; font-size: 42px; line-height: 1;
-    color: @cream;
-    margin-bottom: 4px;
-  }
-  &__intro-roman {
-    font-family: 'Montserrat', sans-serif; font-weight: 700;
-    font-size: 11px; letter-spacing: 0.5em;
-    color: @pink; text-transform: uppercase;
-    margin-top: 12px;
-  }
   &__centre {
     flex: 1 1 auto;
     display: flex; align-items: center; justify-content: center;
   }
   &__foot {
-    display: flex; align-items: center; gap: 14px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px;
     font-family: 'Cormorant Garamond', serif; font-style: italic;
     font-size: 17px; color: @cream-2;
   }
+  &__est {
+    font-family: 'Montserrat', sans-serif; font-weight: 500;
+    font-size: 8.5px; letter-spacing: 0.4em;
+    color: @cream-4; text-transform: uppercase;
+  }
+  // Kiln-fire placeholder — irregular soft shape glowing from within,
+  // AlterU emblem breathing at the centre. Identity stays hidden until
+  // the painted card arrives.
+  &__kiln {
+    width: 240px; height: 240px;
+    position: relative;
+    border-radius: 58% 64% 52% 68% / 56% 50% 62% 54%;
+    background:
+      radial-gradient(ellipse at 50% 55%, #6A2C56 0%, #2A0A3C 50%, #0E0414 90%);
+    box-shadow:
+      0 0 80px rgba(120, 50, 100, 0.30),
+      0 0 30px rgba(180, 100, 160, 0.18),
+      inset 0 0 60px rgba(0, 0, 0, 0.5),
+      inset 0 0 22px rgba(245, 177, 199, 0.16);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    animation: da-kiln-pulse 3.6s ease-in-out infinite;
+
+    &::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='b'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.18  0 0 0 0 0.3  0 0 0 0.6 0'/></filter><rect width='200' height='200' filter='url(%23b)'/></svg>");
+      mix-blend-mode: overlay; opacity: 0.7;
+      pointer-events: none;
+    }
+  }
+  &__kiln-mark {
+    position: relative; z-index: 1;
+    width: 100px; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+    animation: da-kiln-mark 2.4s ease-in-out infinite;
+    svg { width: 100%; height: 100%; }
+    svg path {
+      fill: rgba(244, 232, 208, 0.92);
+      filter: drop-shadow(0 0 8px rgba(245, 177, 199, 0.4));
+    }
+  }
+}
+@keyframes da-kiln-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 80px rgba(120, 50, 100, 0.30),
+      0 0 30px rgba(180, 100, 160, 0.18),
+      inset 0 0 60px rgba(0, 0, 0, 0.5),
+      inset 0 0 22px rgba(245, 177, 199, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 0 120px rgba(180, 80, 150, 0.42),
+      0 0 45px rgba(245, 177, 199, 0.3),
+      inset 0 0 60px rgba(0, 0, 0, 0.45),
+      inset 0 0 34px rgba(245, 177, 199, 0.3);
+  }
+}
+@keyframes da-kiln-mark {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50%      { opacity: 1;    transform: scale(1.08); }
 }
 
 // Painting placeholder (warm cream square + ghost name breathing)
@@ -476,6 +520,61 @@
 }
 @keyframes da-coll-in {
   0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+// ─── v1.1 additions ───────────────────────────────────────────────
+
+// Ghost "View Deck" link on idle (left side, smaller than CTA)
+.da-link-ghost {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: @cream-3;
+  background: none; border: none; padding: 8px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  &:hover { color: @cream-2; }
+}
+
+// Live countdown block on Done screen
+.da-reveal__countdown {
+  text-align: center;
+  margin: 6px 0 18px;
+  padding: 12px 0;
+  border-top: 0.5px solid @line-d;
+  border-bottom: 0.5px solid @line-d;
+}
+.da-reveal__countdown-label {
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px; letter-spacing: 0.5em;
+  color: @cream-3; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.da-reveal__countdown-value {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-weight: 500; font-size: 22px;
+  color: @pink;
+  letter-spacing: 0.02em;
+}
+
+// Toast (gen-image failure on idle screen)
+.da-toast {
+  position: absolute;
+  top: 76px; left: 22px; right: 22px;
+  z-index: 50;
+  padding: 14px 18px;
+  background: rgba(60, 20, 30, 0.92);
+  border: 0.5px solid rgba(245, 177, 199, 0.45);
+  color: @cream;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 14px; line-height: 1.4;
+  text-align: center;
+  animation: da-toast-in 240ms ease-out;
+}
+@keyframes da-toast-in {
+  0%   { opacity: 0; transform: translateY(-6px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
