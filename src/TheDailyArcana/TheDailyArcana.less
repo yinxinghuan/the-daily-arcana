@@ -39,10 +39,24 @@
     font-size: 8.5px; letter-spacing: 0.4em;
     color: @cream-3; text-transform: uppercase;
   }
+  &__r {
+    display: flex; align-items: center; gap: 12px;
+  }
   &__l .pink-dot {
     display: inline-block; width: 4px; height: 4px;
     background: @pink; border-radius: 50%;
     margin: 0 8px 1.5px 0; vertical-align: middle;
+  }
+  &__deck {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 8.5px; letter-spacing: 0.32em;
+    text-transform: uppercase; color: @pink;
+    background: none; border: 0.6px solid @pink; border-radius: 999px;
+    padding: 5px 11px 5px 9px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; user-select: none;
+    svg { fill: @pink; display: block; }
   }
 }
 .da-toprule {

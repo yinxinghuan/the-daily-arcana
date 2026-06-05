@@ -4,17 +4,23 @@ import type { ArcanaCard } from '../types';
 import { toRoman } from '../utils/roman';
 
 // Shared painted-tarot style. Locks every card into the same museum-tarot
-// look: deep aubergine ground, cream parchment panel inside an ornate
-// gold border, hand-painted gouache (NOT photoreal). Limited palette so
-// 22 cards feel like one deck.
+// look: hand-painted gouache (NOT photoreal), limited palette so 22 cards
+// feel like one deck.
+//
+// 1:1 CONTRACT — the illustration MUST be a full-bleed perfect square. The
+// ornate gold border IS the outer edge of the square frame (touches all
+// four sides); the painted scene fills the interior completely. There is
+// NO aubergine margin / matte / letterbox around the card — that is what
+// made portrait-panel renders show purple bars on the sides.
 const STYLE = [
   'museum-quality painted tarot card illustration, Pamela Colman Smith × art-nouveau line work',
-  'a cream parchment panel framed by a heavy ornate gold border with curling vine filigree',
-  'background OUTSIDE the panel is deep aubergine #1A0B1F midnight blue',
-  'limited palette inside the panel: cream, dusty gold, dusty rose, muted teal, dark indigo',
+  'PERFECT SQUARE full-bleed composition: the ornate gold art-nouveau border with curling vine filigree runs flush along all four outer edges of the square frame, and the painted scene fills the entire square edge to edge',
+  'absolutely NO background margin, NO matte, NO letterbox, NO empty aubergine bars around the artwork — the card art extends to every edge',
+  'cream parchment ground inside the gold border, deep aubergine #1A0B1F and dark indigo used only as scene shadows and night sky, never as an outer frame',
+  'limited palette: cream, dusty gold, dusty rose, muted teal, dark indigo, aubergine',
   'flat painted gouache style, soft brush strokes, slightly desaturated, NOT photorealistic, no glossy skin, no digital airbrush',
   'symmetrical balanced composition, single subject, no text or letters anywhere except a small roman numeral plaque at the bottom edge',
-  'square format, the artwork fully fills the panel',
+  'square 1:1 aspect ratio, the artwork fully fills the square frame',
   'mysterious reverent mood, slight grain, hand-illustrated feel',
 ].join(', ');
 

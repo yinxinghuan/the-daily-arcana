@@ -219,7 +219,24 @@ export default function TheDailyArcana() {
         <div className="da-topbar__l">
           <span className="pink-dot" /> ALTERU · ARCANA
         </div>
-        <div className="da-topbar__r">{todayDateLine}</div>
+        <div className="da-topbar__r">
+          <span className="da-topbar__date">{todayDateLine}</span>
+          {(phase === 'idle' || phase === 'done') && (
+            <button
+              className="da-topbar__deck"
+              onPointerDown={() => setPhase('collection')}
+              aria-label={isZh ? '查看收藏' : 'View deck'}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+              <span>{isZh ? '收藏' : 'Deck'}</span>
+            </button>
+          )}
+        </div>
       </div>
       <div className="da-toprule" />
 
