@@ -472,16 +472,29 @@
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px;
   }
+  // 2026-06-12: was a ghost text-link, easily confused with Aigram
+  // iOS's own top-left "返回" which closes the whole miniapp. Players
+  // were misreading the in-game back as the platform back and exiting
+  // the game. Promoted to a pink-tinted chip with a clear border so it
+  // reads as a game-internal button, not a platform-level navigation
+  // arrow.
   &__back {
-    background: transparent; border: none;
-    color: @cream-2; cursor: pointer; padding: 0;
-    display: flex; align-items: center; gap: 8px;
+    background: rgba(245, 177, 199, 0.10);
+    border: 0.6px solid @pink;
+    border-radius: 9999px;
+    color: @pink;
+    cursor: pointer;
+    padding: 8px 14px 8px 11px;
+    display: inline-flex; align-items: center; gap: 6px;
     font-family: 'Montserrat', sans-serif; font-weight: 700;
-    font-size: 9.5px; letter-spacing: 0.42em;
+    font-size: 10px; letter-spacing: 0.30em;
     text-transform: uppercase;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    .arr { color: @pink; margin-right: 4px; }
+    transition: background 160ms ease;
+    box-shadow: 0 0 12px rgba(245, 177, 199, 0.16);
+    &:active { background: rgba(245, 177, 199, 0.22); }
+    .arr { color: @pink; margin-right: 2px; font-size: 12px; }
   }
   &__hd-r {
     font-family: 'Montserrat', sans-serif; font-weight: 700;
