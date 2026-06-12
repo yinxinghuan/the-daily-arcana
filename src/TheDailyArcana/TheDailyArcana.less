@@ -669,3 +669,185 @@
   0%   { opacity: 0; }
   100% { opacity: 1; }
 }
+
+// ─── DrawViewer additions: byline chip + heart button ───────────────
+.da-detail__byline {
+  display: flex; justify-content: center; align-items: center;
+  margin: -4px 0 14px;
+}
+.da-detail__byline-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: none; padding: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  color: @cream-2;
+  &:disabled { cursor: default; }
+}
+.da-detail__byline-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: @cream-4; color: @ground; overflow: hidden;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 10px;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.da-detail__byline-name {
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 10.5px; letter-spacing: 0.24em;
+  color: @cream-2; text-transform: uppercase;
+}
+.da-detail__byline-name--self {
+  color: @pink;
+  letter-spacing: 0.4em;
+}
+.da-detail__heart {
+  margin: 18px auto 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 22px;
+  background: transparent;
+  border: 0.6px solid @cream-4;
+  border-radius: 9999px;
+  color: @cream-2;
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 10.5px; letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: border-color 200ms ease, color 200ms ease;
+  &.is-hearted {
+    border-color: @pink;
+    color: @pink;
+    cursor: default;
+  }
+}
+.da-detail__heart-glyph { font-size: 14px; line-height: 1; }
+.da-detail__heart-label {}
+
+// ─── Done-screen entry points to the social wing ────────────────────
+// Commune line becomes a button when tappable (Done phase only). Adds a
+// right-arrow hint so it reads as "more behind this".
+.da-reveal__commune--btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: none; padding: 4px 0;
+  margin: 0 auto;
+  color: inherit;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.da-reveal__commune-arrow {
+  color: @pink; opacity: 0.85;
+  transition: transform 200ms ease;
+}
+.da-reveal__commune--btn:active .da-reveal__commune-arrow {
+  transform: translateX(3px);
+}
+
+// Tonight's Pulls — secondary CTA below the share row on Done.
+.da-reveal__wall-cta {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 22px auto 0;
+  padding: 12px 26px;
+  background: transparent;
+  border: 0.6px solid @pink;
+  border-radius: 9999px;
+  color: @pink;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 10.5px; letter-spacing: 0.36em;
+  text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background 200ms ease;
+  &:active { background: rgba(245, 177, 199, 0.10); }
+  .arr { transition: transform 180ms ease; }
+  &:active .arr { transform: translateX(3px); }
+}
+
+// ─── Wall + Room screens ────────────────────────────────────────────
+//
+// Both screens use the existing .da-collection scaffolding for the top
+// bar / back button / eyebrow / title — only the body grid + cell
+// rendering is new. Cells are larger than Collection's (single-column-
+// width images instead of 3-column tight grid) because the author chip
+// + age line need their own row of breathing room.
+.da-wall, .da-room {
+  position: fixed; inset: 0;
+  background: @ground; color: @cream;
+  overflow-y: auto;
+  padding-bottom: 80px;
+  animation: da-fade-in 220ms ease-out;
+}
+.da-wall__hd, .da-room__hd {
+  // Top padding clears the absolute-positioned brand strip (.da-topbar
+  // sits at top:0 with z-index:4). Matches Collection's 86px lead so all
+  // three full-screen overlays start their content at the same baseline.
+  padding: 86px 24px 14px;
+}
+.da-wall__hd-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.da-room__kw {
+  font-family: 'Montserrat', sans-serif; font-weight: 500;
+  font-size: 9.5px; letter-spacing: 0.34em;
+  color: @cream-3; text-transform: uppercase;
+  text-align: center;
+  margin-top: 6px; margin-bottom: 14px;
+  .dot { color: @pink; margin: 0 6px; }
+}
+.da-wall__loading, .da-wall__empty {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 14.5px;
+  color: @cream-3;
+  padding: 36px 24px;
+}
+.da-wall__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px 14px;
+  padding: 8px 18px 0;
+}
+.da-wall__cell {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.da-wall__cell-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border: none; padding: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+  transition: transform 200ms ease;
+  &:active { transform: translateY(-2px); }
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+.da-wall__cell-meta {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.da-wall__cell-name {
+  background: transparent; border: none; padding: 0;
+  text-align: left;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-weight: 400; font-size: 16px; line-height: 1.15;
+  color: @cream;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  &:active { color: @pink; }
+}
+.da-wall__cell-byline {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Montserrat', sans-serif; font-weight: 600;
+  font-size: 9px; letter-spacing: 0.18em;
+  color: @cream-3; text-transform: uppercase;
+}
+.da-wall__cell-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: @cream-4; color: @ground; overflow: hidden;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9px;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.da-wall__cell-author { color: @cream-2; }
+.da-wall__cell-sep { color: @cream-4; }
+.da-wall__cell-age {
+  letter-spacing: 0.14em;
+  color: @cream-3;
+}

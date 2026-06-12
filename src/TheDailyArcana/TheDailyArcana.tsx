@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGameSave } from '@shared/save';
-import { useGameEvent, useGameStats } from '@shared/runtime';
+import { useGameEvent, useGameStats, telegramId } from '@shared/runtime';
 import DeckBack from './components/DeckBack';
 import CardFace from './components/CardFace';
 import Collection from './components/Collection';
+import Wall from './components/Wall';
+import Room from './components/Room';
 import Watermark from './components/Watermark';
 import { useArcanaGen } from './hooks/useArcanaGen';
 import { useSelfProfile } from './hooks/useSelfProfile';
+import { useWall } from './hooks/useWall';
 import { CARDS, cardById } from './data/cards';
 import { todayKey, formatDate, formatCountdown, msUntilMidnight, timeSince } from './utils/day';
 import { preloadImage } from './utils/preload';
+import { publishDraw } from './utils/publish';
 import { toRoman } from './utils/roman';
 import {
   installGlobalTapFeedback,
@@ -20,7 +24,7 @@ import {
   playReveal,
 } from './utils/audio';
 import { t, locale } from './i18n';
-import type { ArcanaSave, Phase, Draw } from './types';
+import type { ArcanaSave, Phase, Draw, PublishedDraw } from './types';
 import './TheDailyArcana.less';
 
 export default function TheDailyArcana() {
@@ -55,6 +59,16 @@ export default function TheDailyArcana() {
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [activeCard, setActiveCard] = useState<{ cardId: number; imageUrl: string | null } | null>(null);
+  // Which arcanum the per-card Room is showing. Set when descending from
+  // either Done ("47 others held this") or any Wall row's card name.
+  const [roomCardId, setRoomCardId] = useState<number | null>(null);
+  // Cross-user feed (cached + refetched on demand).
+  const wall = useWall();
+  // Set of PublishedDraw ids the player has hearted — mirrored from save
+  // so the visual flip is instant + survives a remount. Persisted via
+  // ArcanaSave.hearts. New entries land here optimistically before the
+  // trigger event is acked.
+  const heartedIds = useMemo(() => new Set(mirror?.hearts ?? []), [mirror?.hearts]);
   const [hasFirstTouched, setHasFirstTouched] = useState(false);
   const [shareLabel, setShareLabel] = useState('');
   const [errorToast, setErrorToast] = useState<string>('');
@@ -99,6 +113,8 @@ export default function TheDailyArcana() {
       setActiveCard({ cardId: 6, imageUrl: null });
       setPhase('revealing');
     } else if (demo === 'collection') setPhase('collection');
+    else if (demo === 'wall') setPhase('wall');
+    else if (demo === 'room') { setRoomCardId(6); setPhase('room'); }
   }, [demo]);
 
   // Ambient pause during reveal so the chime carries the moment.
@@ -153,13 +169,42 @@ export default function TheDailyArcana() {
       setTimeout(() => communeStats.refresh(), 1500);
 
       // Persist + flip daily lock.
-      const draw: Draw = { date: today, cardId, imageUrl: url, ts: Date.now() };
+      const ts = Date.now();
+      const draw: Draw = { date: today, cardId, imageUrl: url, ts };
       const nextSave: ArcanaSave = {
         lastDrawDay: today,
         history: [draw, ...(mirror?.history ?? [])],
+        hearts: mirror?.hearts,
       };
       setMirror(nextSave);
       persist(nextSave);
+
+      // Publish to the cross-user wall. Frozen at this moment so the
+      // wall doesn't need to re-substitute {NAME} or re-fetch profile
+      // info for every viewer. Failure is silent — local history is
+      // the source of truth for "I drew today".
+      if (telegramId) {
+        const readingForPublish = (isZh ? card.zhReading : card.reading).replace(
+          /\{NAME\}/g,
+          profile?.name ?? (isZh ? '你' : 'you'),
+        );
+        const published: PublishedDraw = {
+          id: `${telegramId}:${today}`,
+          authorId: String(telegramId),
+          authorName: profile?.name,
+          authorAvatarUrl: profile?.avatarUrl,
+          date: today,
+          ts,
+          cardId,
+          imageUrl: url,
+          reading: readingForPublish,
+          locale: isZh ? 'zh' : 'en',
+        };
+        void publishDraw(published);
+        // Refresh the wall so the player's own pull appears next time
+        // they open Tonight's Pulls or the per-card Room.
+        setTimeout(() => void wall.refresh(), 1500);
+      }
 
       setTimeout(() => setPhase('done'), 1800);
     } catch {
@@ -174,6 +219,49 @@ export default function TheDailyArcana() {
       );
       setTimeout(() => setErrorToast(''), 4200);
     }
+  };
+
+  // Heart-react to another user's published draw. Optimistic local flip
+   // plus a `heart` event with a notify action targeting the original
+   // author — they get a 1:1 push showing the player's name + the card.
+   // No-op for own draws or already-hearted ids.
+  const handleHeart = (draw: PublishedDraw) => {
+    if (heartedIds.has(draw.id)) return;
+    if (telegramId && String(telegramId) === String(draw.authorId)) return;
+
+    // Optimistic update.
+    setMirror(prev => {
+      if (!prev) return prev;
+      const next: ArcanaSave = {
+        ...prev,
+        hearts: [draw.id, ...(prev.hearts ?? [])].slice(0, 200),
+      };
+      persist(next);
+      return next;
+    });
+
+    const card = cardById(draw.cardId);
+    const cardName = isZh ? card.zhName : card.name;
+    const template = isZh
+      ? `{sender_name} 用 ♥ 标记了你的${cardName}`
+      : `{sender_name} marked your ${cardName} with a heart`;
+
+    events.trigger('heart', {
+      actions: [
+        {
+          type: 'notify',
+          target_user_id: draw.authorId,
+          image: {
+            ref_url: draw.imageUrl,
+            prompt: 'tarot card painting',
+          },
+          message: {
+            template,
+            variables: ['sender_name'],
+          },
+        },
+      ],
+    });
   };
 
   const handleShare = () => {
@@ -339,16 +427,39 @@ export default function TheDailyArcana() {
               </span>
             ))}
           </div>
-          {/* Communal counter — "X others drew this tonight" */}
+          {/* Communal counter — "X others drew this tonight". Tapping
+              descends into the per-card Room when in the done phase so
+              the player can see who else held this card. During the
+              revealing phase it stays a plain line — the reveal moment
+              is for absorbing the card, not for navigating. */}
           {communeStats.stats.day_user_count > 1 ? (
-            <div className="da-reveal__commune">
-              {t(
-                communeStats.stats.day_user_count - 1 === 1
-                  ? 'commune_others_one'
-                  : 'commune_others_many',
-                { N: communeStats.stats.day_user_count - 1 },
-              )}
-            </div>
+            phase === 'done' ? (
+              <button
+                type="button"
+                className="da-reveal__commune da-reveal__commune--btn"
+                onPointerDown={() => {
+                  setRoomCardId(card.id);
+                  setPhase('room');
+                }}
+              >
+                {t(
+                  communeStats.stats.day_user_count - 1 === 1
+                    ? 'commune_others_one'
+                    : 'commune_others_many',
+                  { N: communeStats.stats.day_user_count - 1 },
+                )}
+                <span className="da-reveal__commune-arrow">→</span>
+              </button>
+            ) : (
+              <div className="da-reveal__commune">
+                {t(
+                  communeStats.stats.day_user_count - 1 === 1
+                    ? 'commune_others_one'
+                    : 'commune_others_many',
+                  { N: communeStats.stats.day_user_count - 1 },
+                )}
+              </div>
+            )
           ) : phase === 'done' && communeStats.stats.day_user_count === 1 ? (
             <div className="da-reveal__commune">{t('commune_alone')}</div>
           ) : null}
@@ -382,7 +493,47 @@ export default function TheDailyArcana() {
               <span className="arr">→</span>
             </button>
           </div>
+
+          {/* Tonight's Pulls — full cross-user feed. The deck button
+              above is private (your draws); this one is the social wing. */}
+          {phase === 'done' && (
+            <button
+              className="da-reveal__wall-cta"
+              onPointerDown={() => setPhase('wall')}
+            >
+              {t('wall_cta')}
+              <span className="arr">→</span>
+            </button>
+          )}
         </div>
+      )}
+
+      {/* WALL — cross-user feed of all published draws */}
+      {phase === 'wall' && (
+        <Wall
+          entries={wall.entries}
+          loaded={wall.loaded}
+          todayKey={today}
+          selfId={telegramId ? String(telegramId) : null}
+          heartedIds={heartedIds}
+          onHeart={handleHeart}
+          onClose={() => setPhase(lockedToday ? 'done' : 'idle')}
+          onOpenRoom={(cardId) => { setRoomCardId(cardId); setPhase('room'); }}
+        />
+      )}
+
+      {/* ROOM — every published draw of one arcanum */}
+      {phase === 'room' && roomCardId != null && (
+        <Room
+          cardId={roomCardId}
+          entries={wall.entries}
+          loaded={wall.loaded}
+          todayKey={today}
+          selfId={telegramId ? String(telegramId) : null}
+          heartedIds={heartedIds}
+          onHeart={handleHeart}
+          onBack={() => setPhase(lockedToday ? 'done' : 'idle')}
+        />
       )}
 
       <Watermark />
