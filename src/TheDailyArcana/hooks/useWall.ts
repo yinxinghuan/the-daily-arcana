@@ -47,18 +47,34 @@ async function fetchUserInfo(userId: string): Promise<UserInfo> {
   }
 }
 
+function isWellFormedDraw(parsed: unknown): parsed is PublishedDraw {
+  const d = parsed as PublishedDraw | null | undefined;
+  if (!d) return false;
+  if (typeof d.cardId !== 'number') return false;
+  if (typeof d.imageUrl !== 'string') return false;
+  if (typeof d.ts !== 'number') return false;
+  if (typeof d.id !== 'string') return false;
+  return true;
+}
+
 function parseRow(row: SaveRow): PublishedDraw | null {
   if (!row.resource_data) return null;
   try {
-    const parsed = JSON.parse(row.resource_data) as PublishedDraw;
-    // Validate the minimum shape — discard local-only saves (ArcanaSave)
-    // that happen to land in the same list. PublishedDraws carry cardId +
-    // imageUrl + ts; ArcanaSaves carry history + lastDrawDay.
-    if (typeof parsed?.cardId !== 'number') return null;
-    if (typeof parsed?.imageUrl !== 'string') return null;
-    if (typeof parsed?.ts !== 'number') return null;
-    if (typeof parsed?.id !== 'string') return null;
-    return parsed;
+    const parsed = JSON.parse(row.resource_data) as
+      | PublishedDraw
+      | { current?: PublishedDraw };
+    // Two accepted save shapes:
+    //   1. NEW (post-2026-06-12): each user writes a single ArcanaSave row
+    //      with a `current` field holding their latest PublishedDraw.
+    //      ArcanaSave carries history/lastDrawDay/hearts/current at the
+    //      top level; we pluck `current` out.
+    //   2. OLD (pre-2026-06-12 publishDraw): the row IS the PublishedDraw
+    //      directly. Kept for backward compat with rows that may have
+    //      landed before the dual-write fix.
+    const nested = (parsed as { current?: PublishedDraw }).current;
+    if (isWellFormedDraw(nested)) return nested;
+    if (isWellFormedDraw(parsed)) return parsed;
+    return null;
   } catch {
     return null;
   }

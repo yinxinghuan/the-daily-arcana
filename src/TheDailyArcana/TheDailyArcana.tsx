@@ -13,7 +13,6 @@ import { useWall } from './hooks/useWall';
 import { CARDS, cardById } from './data/cards';
 import { todayKey, formatDate, formatCountdown, msUntilMidnight, timeSince } from './utils/day';
 import { preloadImage } from './utils/preload';
-import { publishDraw } from './utils/publish';
 import { toRoman } from './utils/roman';
 import {
   installGlobalTapFeedback,
@@ -168,43 +167,44 @@ export default function TheDailyArcana() {
       // Refresh after a short delay so this player sees the +1.
       setTimeout(() => communeStats.refresh(), 1500);
 
-      // Persist + flip daily lock.
+      // Persist + flip daily lock + freeze the public PublishedDraw view.
+      // ONE save write covers all three concerns — see ArcanaSave.current
+      // comment. A previous version made two separate writes (persist +
+      // publishDraw) that raced for the same (session_id, user_id) slot
+      // and silently clobbered each other; Wall came up empty as a
+      // result.
       const ts = Date.now();
       const draw: Draw = { date: today, cardId, imageUrl: url, ts };
+      const published: PublishedDraw | undefined = telegramId
+        ? {
+            id: `${telegramId}:${today}`,
+            authorId: String(telegramId),
+            authorName: profile?.name,
+            authorAvatarUrl: profile?.avatarUrl,
+            date: today,
+            ts,
+            cardId,
+            imageUrl: url,
+            reading: (isZh ? card.zhReading : card.reading).replace(
+              /\{NAME\}/g,
+              profile?.name ?? (isZh ? '你' : 'you'),
+            ),
+            locale: isZh ? 'zh' : 'en',
+          }
+        : undefined;
+
       const nextSave: ArcanaSave = {
         lastDrawDay: today,
         history: [draw, ...(mirror?.history ?? [])],
         hearts: mirror?.hearts,
+        current: published,
       };
       setMirror(nextSave);
       persist(nextSave);
 
-      // Publish to the cross-user wall. Frozen at this moment so the
-      // wall doesn't need to re-substitute {NAME} or re-fetch profile
-      // info for every viewer. Failure is silent — local history is
-      // the source of truth for "I drew today".
-      if (telegramId) {
-        const readingForPublish = (isZh ? card.zhReading : card.reading).replace(
-          /\{NAME\}/g,
-          profile?.name ?? (isZh ? '你' : 'you'),
-        );
-        const published: PublishedDraw = {
-          id: `${telegramId}:${today}`,
-          authorId: String(telegramId),
-          authorName: profile?.name,
-          authorAvatarUrl: profile?.avatarUrl,
-          date: today,
-          ts,
-          cardId,
-          imageUrl: url,
-          reading: readingForPublish,
-          locale: isZh ? 'zh' : 'en',
-        };
-        void publishDraw(published);
-        // Refresh the wall so the player's own pull appears next time
-        // they open Tonight's Pulls or the per-card Room.
-        setTimeout(() => void wall.refresh(), 1500);
-      }
+      // Refresh the wall so the player's own pull appears next time
+      // they open Tonight's Pulls or the per-card Room.
+      setTimeout(() => void wall.refresh(), 1500);
 
       setTimeout(() => setPhase('done'), 1800);
     } catch {

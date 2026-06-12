@@ -50,6 +50,14 @@ export interface ArcanaSave {
    *  remote read. Newest first, capped to 200 (the heart is also OR-able
    *  against the optimistic state during the same session). */
   hearts?: string[];
+  /** The user's latest published draw — author snapshot + personalized
+   *  reading + image URL — frozen here so the cross-user Wall + Rooms
+   *  see one row per user from this single save slot. Was previously
+   *  written via a separate publishDraw() call to the same (session_id,
+   *  user_id) slot, which raced with useGameSave.persist() and silently
+   *  clobbered. Inlining here means one save write satisfies both the
+   *  private state AND the public visibility. */
+  current?: PublishedDraw;
 }
 
 /**
