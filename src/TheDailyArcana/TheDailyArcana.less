@@ -881,6 +881,12 @@
   background: @ground; color: @cream;
   overflow-y: auto;
   padding-bottom: 80px;
+  // Cover the parent TheDailyArcana's brand-strip topbar (which has
+  // z-index:4 and creates its own stacking context). Without this,
+  // the parent .da-topbar bleeds through the top of the overlay even
+  // though .da-wall comes later in the DOM — z-index has to be > 4.
+  // Matches .da-collection's z-index:5.
+  z-index: 5;
   animation: da-fade-in 220ms ease-out;
 }
 .da-wall__hd, .da-room__hd {
