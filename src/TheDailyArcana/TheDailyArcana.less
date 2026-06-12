@@ -108,6 +108,19 @@
 
   .arr { color: @pink; margin: 0 8px; }
 }
+// Center "Wall" entry on the Done nav — pink chip styling so the new
+// social hub reads as the primary action without growing the bottom
+// strip taller (the original 2-button row fit the viewport; adding a
+// third action below would push everything off-screen on longer
+// readings, so we made it a sibling in the same row instead).
+.da-link-nav--pulls {
+  padding: 6px 14px;
+  border: 0.6px solid @pink;
+  border-radius: 9999px;
+  color: @pink;
+  letter-spacing: 0.32em;
+  font-size: 9px;
+}
 
 // ─── Card (1:1 square painted artifact) ───────────────────────────
 
@@ -129,13 +142,7 @@
 
 .da-page {
   position: absolute; inset: 0;
-  // 2026-06-12: nav row + wall CTA were getting pushed below the fold
-  // on cards with longer readings (Empress / Wheel of Fortune) once
-  // the social retrofit added a third bottom action. Make .da-page
-  // scrollable so content past the viewport is reachable.
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 86px 28px calc(env(safe-area-inset-bottom, 0px) + 30px);
+  padding: 86px 28px 30px;
   display: flex; flex-direction: column;
 }
 

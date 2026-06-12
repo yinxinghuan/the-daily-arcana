@@ -484,6 +484,14 @@ export default function TheDailyArcana() {
             >
               <span className="arr">←</span>{isZh ? '收藏' : 'Deck'}
             </button>
+            {phase === 'done' && (
+              <button
+                className="da-link-nav da-link-nav--pulls"
+                onPointerDown={() => setPhase('wall')}
+              >
+                {isZh ? '众牌墙' : 'Wall'}
+              </button>
+            )}
             <button
               className="da-link-nav"
               onPointerDown={handleShare}
@@ -493,18 +501,6 @@ export default function TheDailyArcana() {
               <span className="arr">→</span>
             </button>
           </div>
-
-          {/* Tonight's Pulls — full cross-user feed. The deck button
-              above is private (your draws); this one is the social wing. */}
-          {phase === 'done' && (
-            <button
-              className="da-reveal__wall-cta"
-              onPointerDown={() => setPhase('wall')}
-            >
-              {t('wall_cta')}
-              <span className="arr">→</span>
-            </button>
-          )}
         </div>
       )}
 
