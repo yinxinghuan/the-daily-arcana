@@ -40,18 +40,24 @@ export default function Room({
 
   return (
     <div className="da-room">
-      <div className="da-topbar da-topbar--overlay">
-        <button className="da-collection__back" onClick={onBack}>
-          <span className="arr">←</span>
-          {isZh ? '返回' : 'Back'}
-        </button>
-        <div className="da-topbar__title">
-          {toRoman(card.id)} · {isZh ? card.zhName : card.name}
+      <div className="da-topbar">
+        <div className="da-topbar__l">
+          <span className="pink-dot" /> ALTERU · ARCANA
         </div>
         <div className="da-topbar__r">{formatDate(todayKey, isZh ? 'zh' : 'en')}</div>
       </div>
+      <div className="da-toprule" />
 
       <div className="da-room__hd">
+        <div className="da-wall__hd-row">
+          <button className="da-collection__back" onClick={onBack}>
+            <span className="arr">←</span>
+            {isZh ? '返回' : 'Back'}
+          </button>
+          <div className="da-collection__hd-r">
+            {toRoman(card.id)} · {isZh ? '主牌' : t('major_arcana')}
+          </div>
+        </div>
         <div className="da-collection__hd-eyebrow">
           {t('room_eyebrow')}
         </div>

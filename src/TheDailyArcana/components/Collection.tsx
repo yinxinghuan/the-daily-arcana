@@ -38,18 +38,22 @@ export default function Collection({ history, todayKey, playerName, onClose }: P
 
   return (
     <div className="da-collection">
-      <div className="da-topbar da-topbar--overlay">
-        <button className="da-collection__back" onClick={onClose}>
-          <span className="arr">←</span>
-          {isZh ? '返回' : 'Back'}
-        </button>
-        <div className="da-topbar__title">
-          {isZh ? '你的收藏' : 'Your Deck'}
+      <div className="da-topbar">
+        <div className="da-topbar__l">
+          <span className="pink-dot" /> ALTERU · ARCANA
         </div>
         <div className="da-topbar__r">{formatDate(todayKey, isZh ? 'zh' : 'en')}</div>
       </div>
+      <div className="da-toprule" />
 
       <div className="da-collection__hd">
+        <div className="da-collection__hd-row">
+          <button className="da-collection__back" onClick={onClose}>
+            <span className="arr">←</span>
+            {isZh ? '返回' : 'Back'}
+          </button>
+          <div className="da-collection__hd-r">{isZh ? '你的收藏' : 'Your Deck'}</div>
+        </div>
         <div className="da-collection__hd-eyebrow">
           {isZh ? '深夜塔罗' : 'A LATE-NIGHT TAROT'}
         </div>

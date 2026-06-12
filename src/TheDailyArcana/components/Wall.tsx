@@ -32,20 +32,22 @@ export default function Wall({
 
   return (
     <div className="da-wall">
-      {/* App-bar pattern for overlay screens: back chip on the left always
-          reachable (was scrolling out of view in the previous layout),
-          page title middle, date right. Solid background prevents the
-          scrolling grid from bleeding through. */}
-      <div className="da-topbar da-topbar--overlay">
-        <button className="da-collection__back" onClick={onClose}>
-          <span className="arr">←</span>
-          {isZh ? '返回' : 'Back'}
-        </button>
-        <div className="da-topbar__title">{t('wall_title')}</div>
+      <div className="da-topbar">
+        <div className="da-topbar__l">
+          <span className="pink-dot" /> ALTERU · ARCANA
+        </div>
         <div className="da-topbar__r">{formatDate(todayKey, isZh ? 'zh' : 'en')}</div>
       </div>
+      <div className="da-toprule" />
 
       <div className="da-wall__hd">
+        <div className="da-wall__hd-row">
+          <button className="da-collection__back" onClick={onClose}>
+            <span className="arr">←</span>
+            {isZh ? '返回' : 'Back'}
+          </button>
+          <div className="da-collection__hd-r">{t('wall_title')}</div>
+        </div>
         <div className="da-collection__hd-eyebrow">
           {isZh ? '深夜塔罗' : 'A LATE-NIGHT TAROT'}
         </div>
