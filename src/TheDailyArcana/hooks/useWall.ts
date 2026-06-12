@@ -5,16 +5,17 @@
 // reverse-chronological list. The Wall screen renders this directly; the
 // Room (per-card) screen filters by cardId before rendering.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   callAigramAPI,
   isInAigram,
   getGameUuid,
+  telegramId,
   type AigramResponse,
 } from '@shared/runtime';
 import { cardById } from '../data/cards';
 import { locale } from '../i18n';
-import type { Draw, PublishedDraw } from '../types';
+import type { ArcanaSave, Draw, PublishedDraw } from '../types';
 
 interface SaveRow {
   user_id: string;
@@ -140,8 +141,28 @@ function parseRow(row: SaveRow, viewerIsZh: boolean): PublishedDraw[] {
   }
 }
 
-export function useWall() {
-  const [entries, setEntries] = useState<PublishedDraw[]>([]);
+/**
+ * Cross-user Wall reader. Reuses the Hour Capsule Field pattern:
+ *
+ *   serverEntries  = result of get/data/list (returns at most the 6
+ *                    most-active users' latest save rows per session —
+ *                    a fundamental platform constraint)
+ *   localSave layer = the player's own ArcanaSave passed in by the
+ *                    caller — overlaid on every render so the player
+ *                    sees their own published[] regardless of whether
+ *                    they're in the current top-6 cohort and regardless
+ *                    of save→list propagation lag (eventually consistent)
+ *
+ * Memory rules followed (we've paid for these lessons before):
+ *  · [[wall-optimistic-insert]] — split into server + local layers,
+ *    merge by id, server-loses-to-local for the player's own rows.
+ *  · [[cross-user-wall-visibility]] — own save must be layered in
+ *    explicitly so the player isn't invisible to themselves.
+ *  · [[throttle-at-input-not-output]] — flatten everything at input,
+ *    dedupe + cap at the display layer.
+ */
+export function useWall(localSave?: ArcanaSave | null) {
+  const [serverEntries, setServerEntries] = useState<PublishedDraw[]>([]);
   const [loaded, setLoaded] = useState(false);
   const inflight = useRef(false);
 
@@ -164,9 +185,6 @@ export function useWall() {
       );
       const rows = Array.isArray(res?.data) ? res.data : [];
       const draws: PublishedDraw[] = [];
-      // Dedupe by PublishedDraw.id — a user's save row carries an array
-      // of all their past draws, and we don't want repeats if the row
-      // changes shape across the rollout.
       const seen = new Set<string>();
       const viewerIsZh = locale() === 'zh';
       for (const row of rows) {
@@ -176,8 +194,7 @@ export function useWall() {
           draws.push(d);
         }
       }
-      // Hydrate author info — only for rows missing it (older draws may
-      // not have carried author name/avatar at publish time).
+      // Hydrate missing author info via the profile-info endpoint.
       const idsMissing = Array.from(new Set(
         draws.filter(d => !d.authorAvatarUrl || !d.authorName).map(d => d.authorId),
       ));
@@ -188,9 +205,8 @@ export function useWall() {
         authorName: d.authorName ?? infoMap.get(d.authorId)?.name,
         authorAvatarUrl: d.authorAvatarUrl ?? infoMap.get(d.authorId)?.head_url,
       }));
-      // Newest first.
       hydrated.sort((a, b) => b.ts - a.ts);
-      setEntries(hydrated);
+      setServerEntries(hydrated);
     } catch {
       // Keep stale entries on network error.
     } finally {
@@ -200,6 +216,25 @@ export function useWall() {
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
+
+  // Merge server entries with the player's own local save's published
+  // array. The player's own rows win the dedupe (id collision) because
+  // local always has fresher author info + same imageUrl/reading.
+  const entries = useMemo<PublishedDraw[]>(() => {
+    const map = new Map<string, PublishedDraw>();
+    for (const e of serverEntries) map.set(e.id, e);
+    if (telegramId && localSave?.published && Array.isArray(localSave.published)) {
+      for (const e of localSave.published) {
+        if (!isWellFormedDraw(e)) continue;
+        // Force the authorId to the current user — covers stale rows
+        // written under a different identity during testing.
+        map.set(e.id, { ...e, authorId: String(telegramId) });
+      }
+    }
+    const merged = [...map.values()];
+    merged.sort((a, b) => b.ts - a.ts);
+    return merged;
+  }, [serverEntries, localSave]);
 
   return { entries, loaded, refresh };
 }

@@ -61,8 +61,12 @@ export default function TheDailyArcana() {
   // Which arcanum the per-card Room is showing. Set when descending from
   // either Done ("47 others held this") or any Wall row's card name.
   const [roomCardId, setRoomCardId] = useState<number | null>(null);
-  // Cross-user feed (cached + refetched on demand).
-  const wall = useWall();
+  // Cross-user feed (cached + refetched on demand). We hand it the
+  // local mirror so the player's OWN published[] is always layered over
+  // the server result — get/data/list only returns the 6 most-active
+  // users' rows, and the platform save is eventually consistent, so
+  // without this layer the player could be invisible to themselves.
+  const wall = useWall(mirror);
   // Set of PublishedDraw ids the player has hearted — mirrored from save
   // so the visual flip is instant + survives a remount. Persisted via
   // ArcanaSave.hearts. New entries land here optimistically before the
