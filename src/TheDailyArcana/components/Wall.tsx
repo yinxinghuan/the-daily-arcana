@@ -39,15 +39,17 @@ export default function Wall({
         <div className="da-topbar__r">{formatDate(todayKey, isZh ? 'zh' : 'en')}</div>
       </div>
       <div className="da-toprule" />
+      {/* Second sticky row right under the brand strip. Holds the back
+          chip + breadcrumb so they don't scroll away. */}
+      <div className="da-overlay-nav">
+        <button className="da-collection__back" onClick={onClose}>
+          <span className="arr">←</span>
+          {isZh ? '返回' : 'Back'}
+        </button>
+        <div className="da-collection__hd-r">{t('wall_title')}</div>
+      </div>
 
       <div className="da-wall__hd">
-        <div className="da-wall__hd-row">
-          <button className="da-collection__back" onClick={onClose}>
-            <span className="arr">←</span>
-            {isZh ? '返回' : 'Back'}
-          </button>
-          <div className="da-collection__hd-r">{t('wall_title')}</div>
-        </div>
         <div className="da-collection__hd-eyebrow">
           {isZh ? '深夜塔罗' : 'A LATE-NIGHT TAROT'}
         </div>

@@ -47,17 +47,17 @@ export default function Room({
         <div className="da-topbar__r">{formatDate(todayKey, isZh ? 'zh' : 'en')}</div>
       </div>
       <div className="da-toprule" />
+      <div className="da-overlay-nav">
+        <button className="da-collection__back" onClick={onBack}>
+          <span className="arr">←</span>
+          {isZh ? '返回' : 'Back'}
+        </button>
+        <div className="da-collection__hd-r">
+          {toRoman(card.id)} · {isZh ? '主牌' : t('major_arcana')}
+        </div>
+      </div>
 
       <div className="da-room__hd">
-        <div className="da-wall__hd-row">
-          <button className="da-collection__back" onClick={onBack}>
-            <span className="arr">←</span>
-            {isZh ? '返回' : 'Back'}
-          </button>
-          <div className="da-collection__hd-r">
-            {toRoman(card.id)} · {isZh ? '主牌' : t('major_arcana')}
-          </div>
-        </div>
         <div className="da-collection__hd-eyebrow">
           {t('room_eyebrow')}
         </div>

@@ -65,25 +65,57 @@
   z-index: 4;
 }
 
-// ─── Topbar — solid + sticky on overlay screens ───────────────────
-// 2026-06-13: simpler approach (user-directed) — keep the original
-// brand-strip topbar (ALTERU · ARCANA + date) but give it a solid
-// @ground background and a hairline bottom border when inside the
-// scrollable overlays (Wall / Room / Collection). That stops the
-// scrolling grid from bleeding through the transparent strip while
-// preserving the brand identity row across every screen. The
-// floating .da-toprule is hidden — replaced by the topbar's own
-// bottom border so we don't double-rule.
+// ─── Two-row sticky header on overlay screens ────────────────────
+// Wall / Room / Collection both need:
+//   row 1 — the brand strip (ALTERU · ARCANA + date), solid bg so the
+//           scrolling grid doesn't bleed through
+//   row 2 — the in-game back chip + breadcrumb, ALSO pinned so the
+//           back button never scrolls out of view (which was making
+//           users lean on the Aigram platform back arrow, which
+//           closes the whole miniapp)
+// Both rows are absolute-positioned with @ground background. The
+// floating .da-toprule is hidden — replaced by the nav row's bottom
+// border so we don't double-rule.
 .da-wall > .da-topbar,
 .da-room > .da-topbar,
 .da-collection > .da-topbar {
   background: @ground;
-  border-bottom: 0.5px solid @line;
   padding-bottom: 14px;
+  z-index: 5;
 }
 .da-wall > .da-toprule,
 .da-room > .da-toprule,
 .da-collection > .da-toprule { display: none; }
+.da-overlay-nav {
+  position: absolute;
+  top: 56px; // sits right under the brand strip (which is ~56px tall)
+  left: 0; right: 0;
+  padding: 12px 24px;
+  background: @ground;
+  border-bottom: 0.5px solid @line;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 5;
+  gap: 12px;
+}
+// The scrolling head section starts BELOW both sticky rows. ~118px
+// covers brand strip (~56) + nav row (~52) + a little air. Use the
+// parent-class scope to win over the original `.da-collection__hd
+// { padding: 86px 28px 18px }` shorthand.
+.da-wall .da-wall__hd,
+.da-room .da-room__hd,
+.da-collection .da-collection__hd {
+  padding-top: 118px;
+}
+// Inside .da-wall__hd, the head no longer holds the back-chip row —
+// it was moved out to the sticky .da-overlay-nav above. So any
+// leftover .da-wall__hd-row or .da-collection__hd-row instance in
+// these screens is dead markup; hide defensively so a stale render
+// can't double-up.
+.da-wall .da-wall__hd-row,
+.da-room .da-wall__hd-row,
+.da-collection .da-collection__hd-row { display: none; }
 
 // ─── Shared editorial primitives ──────────────────────────────────
 
