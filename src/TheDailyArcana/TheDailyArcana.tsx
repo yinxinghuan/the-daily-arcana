@@ -490,6 +490,7 @@ export default function TheDailyArcana() {
                 onPointerDown={() => setPhase('wall')}
               >
                 {isZh ? '众牌墙' : 'Wall'}
+                <span className="arr">→</span>
               </button>
             )}
             <button

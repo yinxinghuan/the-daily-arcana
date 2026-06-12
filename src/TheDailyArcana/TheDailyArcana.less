@@ -108,18 +108,36 @@
 
   .arr { color: @pink; margin: 0 8px; }
 }
-// Center "Wall" entry on the Done nav — pink chip styling so the new
+// Center "Wall" entry on the Done nav — solid-fill pink chip so the new
 // social hub reads as the primary action without growing the bottom
 // strip taller (the original 2-button row fit the viewport; adding a
 // third action below would push everything off-screen on longer
 // readings, so we made it a sibling in the same row instead).
+// User asked for more visual weight 2026-06-12: filled background +
+// pink glow shadow + arrow so it pops vs. the two ghost link buttons.
 .da-link-nav--pulls {
-  padding: 6px 14px;
-  border: 0.6px solid @pink;
+  padding: 9px 18px;
+  border: none;
   border-radius: 9999px;
-  color: @pink;
+  background: @pink;
+  color: #2A0612;
   letter-spacing: 0.32em;
-  font-size: 9px;
+  font-size: 10px;
+  display: inline-flex; align-items: center; gap: 8px;
+  box-shadow:
+    0 0 20px rgba(245, 177, 199, 0.45),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease, box-shadow 200ms ease;
+  // Override the shared .da-link-nav .arr color (pink) — on a pink
+  // background a pink arrow disappears. Use the same dark cocoa as the
+  // label for legibility.
+  .arr { color: #2A0612; margin: 0 0 0 2px; }
+  &:active {
+    transform: scale(0.97);
+    box-shadow:
+      0 0 14px rgba(245, 177, 199, 0.32),
+      0 4px 10px rgba(0, 0, 0, 0.45);
+  }
 }
 
 // ─── Card (1:1 square painted artifact) ───────────────────────────
