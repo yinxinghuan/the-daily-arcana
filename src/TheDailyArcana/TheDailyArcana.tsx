@@ -533,7 +533,11 @@ export default function TheDailyArcana() {
         />
       )}
 
-      <Watermark />
+      {/* Watermark is decorative — hidden on the reveal/done screens
+          because it competes for the same bottom band as the nav row
+          and gets clipped on Aigram iOS where the iframe is shorter
+          than full screen. */}
+      {phase !== 'revealing' && phase !== 'done' && <Watermark />}
     </div>
   );
 }
