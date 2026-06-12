@@ -65,6 +65,59 @@
   z-index: 4;
 }
 
+// ─── Topbar — overlay variant ─────────────────────────────────────
+// 2026-06-13: Wall / Room / Collection had a transparent absolute
+// topbar that the scrolling grid bled through; the floating .da-toprule
+// at top:56px stayed planted while content scrolled past it both above
+// and below — read as visual debris. AND the in-game back chip was
+// in the head section that scrolled out of view, leaving only the
+// platform back (which closes the whole miniapp). Promote the topbar
+// on these three screens to a proper app-bar pattern:
+//   solid @ground background  →  no bleed-through, no need for the
+//                                 floating rule (replaced with bottom
+//                                 border on the bar itself)
+//   3-column grid             →  [back chip] | [page title] | [date]
+//   back chip lives here      →  always reachable regardless of scroll
+.da-topbar--overlay {
+  background: @ground;
+  border-bottom: 0.5px solid @line;
+  padding: 12px 22px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  // The back chip's pink shadow halo should not bleed past the bar's
+  // bottom edge into the scrolling grid — clip the overflow.
+  overflow: hidden;
+}
+.da-topbar__title {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.1;
+  color: @cream;
+  text-align: center;
+  // Stay on one line; if the card name is long, truncate gracefully.
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+// On overlay screens, hide the floating toprule (replaced by border)
+// and tighten the head section's top padding — the topbar is now
+// shorter than the old 86px lead. Use the parent-class scope to clear
+// the shorthand `padding:86px 28px 18px` on .da-collection__hd (which
+// would otherwise win the cascade because it's defined later in this
+// file).
+.da-wall, .da-room, .da-collection {
+  > .da-toprule { display: none; }
+}
+.da-wall .da-wall__hd,
+.da-room .da-room__hd,
+.da-collection .da-collection__hd {
+  padding-top: 70px; // was 86px — overlay topbar is more compact
+}
+
 // ─── Shared editorial primitives ──────────────────────────────────
 
 .da-eyebrow {
