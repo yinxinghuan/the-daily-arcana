@@ -66,11 +66,11 @@ const en: Dict = {
   painting_your_card: 'painting your card',
   you_drew: 'you drew —',
 
-  // Cross-user social wing (2026-06-12 retrofit)
-  wall_title: "Tonight's Pulls",
+  // Cross-user social wing (2026-06-12 retrofit; 2026-06-13 went all-time)
+  wall_title: 'The Wall',
   wall_subtitle: 'The Wall',
-  wall_count: '{N} pulls across the circle',
-  wall_cta: "Tonight's Pulls",
+  wall_count: '{N} pulls held in the wall',
+  wall_cta: 'The Wall',
   room_eyebrow: 'EVERYONE WHO HELD',
   room_count: '{N} souls held this card',
   heart_react: 'mark with a heart',
@@ -116,12 +116,12 @@ const zh: Dict = {
   commune_others_many: '今晚还有 {N} 人抽到这张。',
   commune_alone: '今晚, 你是第一个抽到这张的人。',
 
-  // 跨用户社交侧 (2026-06-12 retrofit)
-  wall_title: '今夜众人之牌',
+  // 跨用户社交侧 (2026-06-12 retrofit; 2026-06-13 改成累计可见)
+  wall_title: '众牌之墙',
   wall_subtitle: '众牌之墙',
-  wall_count: '今夜共 {N} 张落于人间',
-  wall_cta: '看今夜众人之牌',
-  room_eyebrow: '今夜持此牌者',
+  wall_count: '共 {N} 张落于人间',
+  wall_cta: '看众牌之墙',
+  room_eyebrow: '持此牌者',
   room_count: '{N} 个灵魂同持此牌',
   heart_react: '用心轻按',
   heart_done: '已按心',

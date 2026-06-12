@@ -71,13 +71,17 @@ export default function TheDailyArcana() {
   const [hasFirstTouched, setHasFirstTouched] = useState(false);
   const [shareLabel, setShareLabel] = useState('');
   const [errorToast, setErrorToast] = useState<string>('');
-  // Live ms-until-midnight, refreshed every 60s while on Done screen.
+  // Live ms-until-midnight. Ticks every 1s while on Done — cheap
+  // (just sets one state) and lets the final 5 minutes show a visible
+  // mm:ss trickle (formatCountdown handles the format switch). The
+  // previous 60s polling left the last minute showing "0 分" for over
+  // a minute, which read as a stuck timer.
   const [countdownMs, setCountdownMs] = useState<number>(msUntilMidnight());
   useEffect(() => {
     if (phase !== 'done') return;
     const update = () => setCountdownMs(msUntilMidnight());
     update();
-    const id = setInterval(update, 60_000);
+    const id = setInterval(update, 1_000);
     return () => clearInterval(id);
   }, [phase]);
 
@@ -193,11 +197,19 @@ export default function TheDailyArcana() {
           }
         : undefined;
 
+      // Append the new published draw to the running array (newest first).
+      // Cap at 30 so the save row doesn't bloat for daily players over
+      // months — at one draw per day that's still a month of visible
+      // history, which is plenty for a 22-card deck.
+      const nextPublished: PublishedDraw[] | undefined = published
+        ? [published, ...(mirror?.published ?? [])].slice(0, 30)
+        : mirror?.published;
+
       const nextSave: ArcanaSave = {
         lastDrawDay: today,
         history: [draw, ...(mirror?.history ?? [])],
         hearts: mirror?.hearts,
-        current: published,
+        published: nextPublished,
       };
       setMirror(nextSave);
       persist(nextSave);

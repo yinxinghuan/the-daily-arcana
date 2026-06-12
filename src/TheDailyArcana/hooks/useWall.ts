@@ -57,26 +57,33 @@ function isWellFormedDraw(parsed: unknown): parsed is PublishedDraw {
   return true;
 }
 
-function parseRow(row: SaveRow): PublishedDraw | null {
-  if (!row.resource_data) return null;
+/** Pull every PublishedDraw out of a single user's save row. One user
+ *  may have many past draws (newest first, capped at 30 by the writer),
+ *  so a row maps to 0..N draws on the wall, not 0..1.
+ *
+ *  Three accepted shapes in priority order:
+ *    1. NEW (post-2026-06-13): row.published is PublishedDraw[]
+ *    2. MID (post-2026-06-12 dual-write fix): row.current is one
+ *       PublishedDraw — the user only made one published draw under the
+ *       single-value architecture
+ *    3. OLD (pre-2026-06-12): the row body IS the PublishedDraw —
+ *       pre-fix publishDraw() wrote directly to the save slot */
+function parseRow(row: SaveRow): PublishedDraw[] {
+  if (!row.resource_data) return [];
   try {
     const parsed = JSON.parse(row.resource_data) as
       | PublishedDraw
-      | { current?: PublishedDraw };
-    // Two accepted save shapes:
-    //   1. NEW (post-2026-06-12): each user writes a single ArcanaSave row
-    //      with a `current` field holding their latest PublishedDraw.
-    //      ArcanaSave carries history/lastDrawDay/hearts/current at the
-    //      top level; we pluck `current` out.
-    //   2. OLD (pre-2026-06-12 publishDraw): the row IS the PublishedDraw
-    //      directly. Kept for backward compat with rows that may have
-    //      landed before the dual-write fix.
+      | { current?: PublishedDraw; published?: PublishedDraw[] };
+    const arr = (parsed as { published?: PublishedDraw[] }).published;
+    if (Array.isArray(arr)) {
+      return arr.filter(isWellFormedDraw);
+    }
     const nested = (parsed as { current?: PublishedDraw }).current;
-    if (isWellFormedDraw(nested)) return nested;
-    if (isWellFormedDraw(parsed)) return parsed;
-    return null;
+    if (isWellFormedDraw(nested)) return [nested];
+    if (isWellFormedDraw(parsed)) return [parsed];
+    return [];
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -104,10 +111,16 @@ export function useWall() {
       );
       const rows = Array.isArray(res?.data) ? res.data : [];
       const draws: PublishedDraw[] = [];
+      // Dedupe by PublishedDraw.id — a user's save row carries an array
+      // of all their past draws, and we don't want repeats if the row
+      // changes shape across the rollout.
+      const seen = new Set<string>();
       for (const row of rows) {
-        const d = parseRow(row);
-        if (!d) continue;
-        draws.push(d);
+        for (const d of parseRow(row)) {
+          if (seen.has(d.id)) continue;
+          seen.add(d.id);
+          draws.push(d);
+        }
       }
       // Hydrate author info — only for rows missing it (older draws may
       // not have carried author name/avatar at publish time).

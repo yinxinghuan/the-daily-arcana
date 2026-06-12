@@ -31,9 +31,22 @@ export function msUntilMidnight(): number {
   return tmrw.getTime() - now.getTime();
 }
 
-/** Compact "Xh Ym" / "Xm" formatter for the countdown. */
+/** Compact countdown formatter — borrows Hour Capsule's pattern so the
+ *  final stretch ticks visibly. Far from midnight: "Xh Ym" / "Xm". Last
+ *  5 minutes: mm:ss with each second visibly counting down (the host
+ *  component runs setInterval at 1s for this window). User reported
+ *  the previous "X 分" rounding to "0 分" with 30+ seconds still on the
+ *  clock looked like the countdown was lying — mm:ss makes the last
+ *  minute legibly trickle through. */
 export function formatCountdown(ms: number, locale: 'zh' | 'en'): string {
-  if (ms <= 0) return locale === 'zh' ? '不到 1 分钟' : 'under 1 min';
+  if (ms <= 0) return '00:00';
+  // Last 5 minutes — switch to mm:ss for tension.
+  if (ms <= 5 * 60000) {
+    const totalSec = Math.ceil(ms / 1000);
+    const mm = Math.floor(totalSec / 60);
+    const ss = totalSec % 60;
+    return `${mm}:${ss.toString().padStart(2, '0')}`;
+  }
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   if (locale === 'zh') {

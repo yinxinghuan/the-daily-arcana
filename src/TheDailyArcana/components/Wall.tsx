@@ -67,7 +67,7 @@ export default function Wall({
       )}
       {loaded && entries.length === 0 && (
         <div className="da-wall__empty">
-          {isZh ? '今夜还没有人翻牌 — 你是第一个。' : 'no pulls yet tonight — be the first.'}
+          {isZh ? '墙上还没有牌 — 你是第一个。' : 'the wall is empty — be the first.'}
         </div>
       )}
 

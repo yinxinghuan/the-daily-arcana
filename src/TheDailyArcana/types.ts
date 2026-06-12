@@ -50,14 +50,18 @@ export interface ArcanaSave {
    *  remote read. Newest first, capped to 200 (the heart is also OR-able
    *  against the optimistic state during the same session). */
   hearts?: string[];
-  /** The user's latest published draw — author snapshot + personalized
-   *  reading + image URL — frozen here so the cross-user Wall + Rooms
-   *  see one row per user from this single save slot. Was previously
-   *  written via a separate publishDraw() call to the same (session_id,
-   *  user_id) slot, which raced with useGameSave.persist() and silently
-   *  clobbered. Inlining here means one save write satisfies both the
-   *  private state AND the public visibility. */
-  current?: PublishedDraw;
+  /** ALL of this user's published draws, newest first, capped at 30.
+   *  The wall + per-card rooms render the union of every user's
+   *  `published` array, so the gen-image output of every reveal is
+   *  durable cross-user content — a draw from three days ago is still
+   *  on the wall today.
+   *
+   *  Was `current?: PublishedDraw` (single, overwritten each day) —
+   *  meant only the LATEST draw was visible to others, so every prior
+   *  card vanished from the public when the user drew again. Tokens
+   *  spent on those past gen-image cards were wasted. 2026-06-13:
+   *  promoted to an array so every drawn card stays on the wall. */
+  published?: PublishedDraw[];
 }
 
 /**
