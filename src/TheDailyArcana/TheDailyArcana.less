@@ -787,14 +787,6 @@
     width: 100%; max-width: 340px;
     margin: 0 auto;
   }
-  &__close {
-    position: absolute; top: -12px; right: -6px;
-    width: 34px; height: 34px;
-    background: transparent; border: none;
-    color: @cream-2; font-size: 17px; line-height: 1;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    z-index: 2;
-  }
   &__topmeta {
     display: flex; align-items: center; justify-content: space-between;
     font-family: 'Montserrat', sans-serif; font-weight: 600;
@@ -807,6 +799,7 @@
     width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
     box-shadow: 0 26px 60px rgba(0, 0, 0, 0.7);
     margin-bottom: 18px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
     img { display: block; width: 100%; height: 100%; object-fit: cover; }
   }
   &__name {

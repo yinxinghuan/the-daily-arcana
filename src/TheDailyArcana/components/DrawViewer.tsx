@@ -42,12 +42,14 @@ export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose, on
   return (
     <div className="da-detail" onClick={onClose}>
       <div className="da-detail__card" onClick={e => e.stopPropagation()}>
-        <button className="da-detail__close" onClick={onClose} aria-label="Close">✕</button>
         <div className="da-detail__topmeta">
           <span>{toRoman(card.id)} · {isZh ? '主牌' : t('major_arcana')}</span>
           <span>{ageLabel}</span>
         </div>
-        <div className="da-detail__img">
+        {/* Tap the card image (or the backdrop) to close — same easy-exit
+            gesture as Hour Capsule. No floating ✕ button to collide with the
+            topmeta row or the platform's own top-right chrome. */}
+        <div className="da-detail__img" onClick={onClose} role="button" aria-label={isZh ? '关闭' : 'Close'}>
           <img src={draw.imageUrl} alt={isZh ? card.zhName : card.name} draggable={false} />
         </div>
         <div className="da-detail__name">{isZh ? card.zhName : card.name}</div>
