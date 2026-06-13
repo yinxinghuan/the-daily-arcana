@@ -211,25 +211,42 @@
 
   img { display: block; width: 100%; height: 100%; object-fit: cover; }
 }
-// On `done` the painting settles a touch smaller AND the oversized roman/name
-// head shrinks (redundant there with the topmeta tag + the numeral painted on
-// the card), freeing vertical room so the reading — the payoff — never clips
-// behind the absolute nav. The card is height-responsive: it stays at the
-// 184px floor only on the shortest Aigram iOS iframes (~540px) and grows back
-// toward the full 288px on taller viewports. Safe by construction — as the
-// viewport grows by ΔH the card grows by only 0.32·ΔH, so vertical slack only
-// ever increases above the verified 540px/184px worst case.
-.da-page--done {
-  .da-reveal__cardwrap { margin-bottom: 12px; }
-  .da-reveal__cardwrap .da-card {
-    width: clamp(184px, 32vh, 288px);
-    height: clamp(184px, 32vh, 288px);
+// On `done` the screen mirrors the Collection detail page: a full-width
+// painted card (the artifact, the whole point of the game) sits up top at the
+// same size the detail/viewer uses (100% content width, capped 340px), and the
+// reading + meta flow below in a SCROLLABLE column. The big roman numeral is
+// hidden (redundant with the topmeta tag + the numeral painted on the card,
+// and absent from the detail page too) — keep just the card name, like detail.
+// The nav row is sticky-pinned to the viewport bottom so 收藏/众牌墙/分享 stay
+// reachable no matter how far the reading scrolls.
+.da-page.da-page--done {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0; // nav is in-flow + sticky now, no absolute reserve needed
+
+  .da-reveal__cardwrap {
+    flex: 0 0 auto;
+    width: 100%; max-width: 340px;
+    margin: 0 auto 14px;
   }
-  .da-reveal__roman { font-size: 40px; }
-  .da-reveal__name { font-size: 30px; }
+  .da-reveal__cardwrap .da-card {
+    width: 100%; height: auto;
+    aspect-ratio: 1 / 1;
+    max-width: 100%; max-height: none; min-height: 0;
+  }
+  .da-reveal__roman { display: none; }
+  .da-reveal__head-rule { display: none; }
+  .da-reveal__name { font-size: 34px; }
   .da-reveal__head { margin-bottom: 8px; }
-  .da-reveal__head-rule { margin-top: 9px; }
-  .da-reveal__text { font-size: 18px; line-height: 1.45; margin-bottom: 10px; }
+  .da-reveal__text { font-size: 18px; line-height: 1.5; margin-bottom: 12px; }
+
+  .da-reveal__nav {
+    position: sticky;
+    left: auto; right: auto;
+    bottom: 0;
+    margin-top: auto; // keep the row at the bottom when the content is short
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px);
+  }
 }
 
 // ─── Phase machine root regions ───────────────────────────────────
