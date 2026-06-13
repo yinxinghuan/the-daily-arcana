@@ -13,6 +13,7 @@ import { useWall } from './hooks/useWall';
 import { CARDS, cardById } from './data/cards';
 import { todayKey, formatDate, formatCountdown, msUntilMidnight, timeSince } from './utils/day';
 import { preloadImage } from './utils/preload';
+import { generateReading } from './utils/reading';
 import { toRoman } from './utils/roman';
 import {
   installGlobalTapFeedback,
@@ -236,12 +237,32 @@ export default function TheDailyArcana() {
     setPhase('generating');
 
     try {
+      // Fire LLM reading + image gen in parallel. Reading is ~3-5s, image
+      // is ~3 min — running them serially would waste the reading wait.
+      // Reading is best-effort: if it errors or times out we fall back to
+      // the static template on the card so reveal NEVER blocks on chat.
+      const readingPromise = generateReading({
+        cardName: card.name,
+        cardKeywords: isZh ? card.zhKeywords : card.keywords,
+        cardSubject: card.subject,
+        playerName: profile?.name ?? null,
+        locale: isZh ? 'zh' : 'en',
+      }).catch(() => null);
+
       const url = await arcanaGen.generate({
         card,
         avatarUrl: profile?.avatarUrl ?? null,
       });
       // Preload BEFORE the phase swap that mounts <img>.
       await preloadImage(url);
+      // Reading has had the full image-gen window to land. If it still
+      // hasn't, take the static fallback rather than make the reveal wait.
+      const llmReading = await readingPromise;
+      const fallbackReading = (isZh ? card.zhReading : card.reading).replace(
+        /\{NAME\}/g,
+        profile?.name ?? (isZh ? '你' : 'you'),
+      );
+      const finalReading = llmReading ?? fallbackReading;
 
       // Persist + flip daily lock + freeze the public PublishedDraw view.
       // ONE save write covers all three concerns — see ArcanaSave.current
@@ -251,7 +272,14 @@ export default function TheDailyArcana() {
       // result. Runs regardless of which screen the user is on now, so a
       // backgrounded paint is just as durable as a watched one.
       const ts = Date.now();
-      const draw: Draw = { date: today, cardId, imageUrl: url, ts };
+      const draw: Draw = {
+        date: today,
+        cardId,
+        imageUrl: url,
+        ts,
+        reading: finalReading,
+        locale: isZh ? 'zh' : 'en',
+      };
       const published: PublishedDraw | undefined = telegramId
         ? {
             id: `${telegramId}:${today}`,
@@ -262,10 +290,7 @@ export default function TheDailyArcana() {
             ts,
             cardId,
             imageUrl: url,
-            reading: (isZh ? card.zhReading : card.reading).replace(
-              /\{NAME\}/g,
-              profile?.name ?? (isZh ? '你' : 'you'),
-            ),
+            reading: finalReading,
             locale: isZh ? 'zh' : 'en',
           }
         : undefined;
@@ -368,8 +393,13 @@ export default function TheDailyArcana() {
     if (!activeCard) return;
     const card = cardById(activeCard.cardId);
     const name = isZh ? card.zhName : card.name;
-    const reading = (isZh ? card.zhReading : card.reading).replace(
-      '{NAME}', profile?.name ?? '',
+    // Share the LLM-written reading frozen onto this draw when available —
+    // the static template is only a last resort.
+    const reading = (
+      todaysDraw?.reading
+      ?? (isZh ? card.zhReading : card.reading).replace(
+        '{NAME}', profile?.name ?? '',
+      )
     );
     const text = `${name} — ${reading.trim()}\n— The Daily Arcana · alteru.studio`;
     // Prefer the native share sheet (truthful "Share"); fall back to a
@@ -391,8 +421,12 @@ export default function TheDailyArcana() {
   // ─── Derived render data ─────────────────────────────────────────
 
   const card = activeCard ? cardById(activeCard.cardId) : null;
+  // Prefer the LLM-written reading frozen onto this draw (so every player's
+  // Empress is different); fall back to the static template for legacy draws
+  // or chat-API failures during the pull.
   const personalizedReading = card
-    ? (isZh ? card.zhReading : card.reading).replace(
+    ? todaysDraw?.reading
+      ?? (isZh ? card.zhReading : card.reading).replace(
         '{NAME}', profile?.name ?? (isZh ? '你' : 'you'),
       )
     : '';

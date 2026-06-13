@@ -127,7 +127,11 @@ function CardDetail({
 }) {
   const isZh = locale() === 'zh';
   const name = playerName ?? (isZh ? '你' : 'you');
-  const reading = (isZh ? card.zhReading : card.reading).replace(/\{NAME\}/g, name);
+  // Prefer the LLM reading frozen onto this draw so the deck shows the
+  // exact text the player saw on reveal; fall back to the static template
+  // for legacy draws made before the per-pull LLM pass landed.
+  const reading = draw.reading
+    ?? (isZh ? card.zhReading : card.reading).replace(/\{NAME\}/g, name);
   const dateLabel = draw.date === todayKey
     ? t('collection_today')
     : formatDate(draw.date, isZh ? 'zh' : 'en');

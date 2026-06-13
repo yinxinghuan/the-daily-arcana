@@ -37,6 +37,14 @@ export interface Draw {
   /** ms epoch. Optional for legacy reads — defaults to 0 when missing.
    *  Used to display "drawn Xh ago" on revisit. */
   ts?: number;
+  /** Personalized reading the player saw on reveal — LLM-generated per
+   *  draw so two players drawing the same card don't see the same line.
+   *  Missing on legacy draws made before the LLM pass landed; consumers
+   *  fall back to the static `card.reading` template. */
+  reading?: string;
+  /** Locale the reading was written in (only meaningful when `reading`
+   *  is set). Lets Collection render the right script when reopening. */
+  locale?: 'zh' | 'en';
 }
 
 export interface ArcanaSave {
