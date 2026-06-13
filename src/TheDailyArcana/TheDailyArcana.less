@@ -211,13 +211,20 @@
 
   img { display: block; width: 100%; height: 100%; object-fit: cover; }
 }
-// On `done` the painting settles smaller AND the oversized roman/name head
-// shrinks (it's redundant there with the topmeta tag + the numeral painted
-// on the card). Both free vertical room so the reading — the payoff — never
-// clips behind the absolute nav, even on short iframes / longest cards.
+// On `done` the painting settles a touch smaller AND the oversized roman/name
+// head shrinks (redundant there with the topmeta tag + the numeral painted on
+// the card), freeing vertical room so the reading — the payoff — never clips
+// behind the absolute nav. The card is height-responsive: it stays at the
+// 184px floor only on the shortest Aigram iOS iframes (~540px) and grows back
+// toward the full 288px on taller viewports. Safe by construction — as the
+// viewport grows by ΔH the card grows by only 0.32·ΔH, so vertical slack only
+// ever increases above the verified 540px/184px worst case.
 .da-page--done {
   .da-reveal__cardwrap { margin-bottom: 12px; }
-  .da-reveal__cardwrap .da-card { width: 184px; height: 184px; }
+  .da-reveal__cardwrap .da-card {
+    width: clamp(184px, 32vh, 288px);
+    height: clamp(184px, 32vh, 288px);
+  }
   .da-reveal__roman { font-size: 40px; }
   .da-reveal__name { font-size: 30px; }
   .da-reveal__head { margin-bottom: 8px; }
