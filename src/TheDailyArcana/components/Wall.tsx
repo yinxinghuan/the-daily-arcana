@@ -92,8 +92,8 @@ export default function Wall({
                 <button
                   type="button"
                   className="da-wall__cell-name"
-                  onClick={() => onOpenRoom(card.id)}
-                  aria-label={`${isZh ? '查看' : 'see'} ${isZh ? card.zhName : card.name}`}
+                  onClick={() => setSelected(draw)}
+                  aria-label={`${isZh ? '打开' : 'open'} ${isZh ? card.zhName : card.name}`}
                 >
                   {isZh ? card.zhName : card.name}
                 </button>
@@ -129,6 +129,7 @@ export default function Wall({
           hearted={heartedIds.has(selected.id)}
           onHeart={() => onHeart(selected)}
           onClose={() => setSelected(null)}
+          onOpenRoom={onOpenRoom}
         />
       )}
     </div>

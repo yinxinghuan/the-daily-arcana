@@ -66,6 +66,17 @@ const en: Dict = {
   painting_your_card: 'painting your card',
   you_drew: 'you drew —',
 
+  // Background generation + reveal-later
+  gen_wait_bg: 'paint it in the background',
+  gen_pill_painting: 'painting your card…',
+  gen_pill_ready: 'your card is ready',
+  reveal_now: 'reveal',
+  gen_whisper_1: 'grinding the pigments…',
+  gen_whisper_2: 'laying the gold leaf…',
+  gen_whisper_3: 'the figure takes shape…',
+  gen_whisper_4: 'the ink is nearly dry…',
+  view_room: 'everyone who held this',
+
   // Cross-user social wing (2026-06-12 retrofit; 2026-06-13 went all-time)
   wall_title: 'The Wall',
   wall_subtitle: 'The Wall',
@@ -138,6 +149,17 @@ const zh: Dict = {
   major_arcana: '主牌',
   painting_your_card: '正在为你绘制',
   you_drew: '你抽到了',
+
+  // 后台生成 + 稍后揭晓
+  gen_wait_bg: '先去逛逛 · 画好叫你',
+  gen_pill_painting: '正在为你绘制…',
+  gen_pill_ready: '你的牌已就绪',
+  reveal_now: '揭晓',
+  gen_whisper_1: '正在研磨颜料…',
+  gen_whisper_2: '正在敷上金箔…',
+  gen_whisper_3: '人物渐渐显形…',
+  gen_whisper_4: '墨色就要干了…',
+  view_room: '看持此牌的人',
 };
 
 const DICTS: Record<Locale, Dict> = { en, zh };

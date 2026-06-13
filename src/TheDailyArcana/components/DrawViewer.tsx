@@ -19,9 +19,12 @@ interface Props {
   hearted: boolean;
   onHeart: () => void;
   onClose: () => void;
+  /** When provided (Wall context), shows a link into this card's Room.
+   *  Omitted from the Room itself, where the link would be redundant. */
+  onOpenRoom?: (cardId: number) => void;
 }
 
-export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose }: Props) {
+export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose, onOpenRoom }: Props) {
   const isZh = locale() === 'zh';
   const card = cardById(draw.cardId);
   const isSelf = !!selfId && String(selfId) === String(draw.authorId);
@@ -95,7 +98,7 @@ export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose }: 
         {!isSelf && (
           <button
             className={`da-detail__heart${hearted ? ' is-hearted' : ''}`}
-            onPointerDown={onHeart}
+            onClick={onHeart}
             disabled={hearted}
             aria-label={hearted ? t('heart_done') : t('heart_react')}
           >
@@ -103,6 +106,16 @@ export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose }: 
             <span className="da-detail__heart-label">
               {hearted ? t('heart_done') : t('heart_react')}
             </span>
+          </button>
+        )}
+
+        {onOpenRoom && (
+          <button
+            type="button"
+            className="da-detail__room-link"
+            onClick={() => onOpenRoom(card.id)}
+          >
+            {t('view_room')} <span className="da-detail__room-arr">→</span>
           </button>
         )}
       </div>

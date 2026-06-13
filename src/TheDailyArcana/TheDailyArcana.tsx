@@ -23,7 +23,7 @@ import {
   playReveal,
 } from './utils/audio';
 import { t, locale } from './i18n';
-import type { ArcanaSave, Phase, Draw, PublishedDraw } from './types';
+import type { ArcanaSave, Phase, Draw, PublishedDraw, ArcanaCard } from './types';
 import './TheDailyArcana.less';
 
 export default function TheDailyArcana() {
@@ -57,10 +57,31 @@ export default function TheDailyArcana() {
     lastDraw && lastDraw.date === today ? lastDraw : null;
 
   const [phase, setPhase] = useState<Phase>('idle');
+  // phaseRef mirrors phase so the long-running handleDraw closure can read
+  // the CURRENT screen at resolve time (3 min later) instead of the stale
+  // phase captured when it started — that's how we know whether the user is
+  // still watching the kiln or has backgrounded it.
+  const phaseRef = useRef<Phase>('idle');
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
   const [activeCard, setActiveCard] = useState<{ cardId: number; imageUrl: string | null } | null>(null);
+  // ─── Background generation ───────────────────────────────────────
+  // The gen-image call blocks ~3 min. Rather than trap the user on a
+  // static loading screen (fatal in a 2-second scroll feed), we let the
+  // promise keep running while they drop back to idle, and call them back
+  // with a 1:1 push when it's ready. bgGen tracks that in-flight job so
+  // idle can show a "painting…" / "ready → reveal" pill, and so a second
+  // draw is blocked until it lands.
+  const [bgGen, setBgGen] = useState<
+    { cardId: number; status: 'painting' | 'ready'; imageUrl: string | null; startedAt: number } | null
+  >(null);
   // Which arcanum the per-card Room is showing. Set when descending from
   // either Done ("47 others held this") or any Wall row's card name.
   const [roomCardId, setRoomCardId] = useState<number | null>(null);
+  // Where the Room should return to on back — 'wall' when opened from the
+  // Wall feed, otherwise the player's own done/idle screen. Without this
+  // the back button from a Wall→Room drill-down skipped the Wall entirely.
+  const [roomReturn, setRoomReturn] = useState<'wall' | 'self'>('self');
   // Cross-user feed (cached + refetched on demand). We hand it the
   // local mirror so the player's OWN published[] is always layered over
   // the server result — get/data/list only returns the 6 most-active
@@ -89,6 +110,18 @@ export default function TheDailyArcana() {
     return () => clearInterval(id);
   }, [phase]);
 
+  // Live elapsed on the kiln screen so a 3-minute paint reads as "working"
+  // not "frozen". Ticks only while the user is actually watching.
+  const [genElapsedMs, setGenElapsedMs] = useState(0);
+  useEffect(() => {
+    if (phase !== 'generating' || !bgGen) return;
+    const started = bgGen.startedAt;
+    const update = () => setGenElapsedMs(Date.now() - started);
+    update();
+    const id = setInterval(update, 1_000);
+    return () => clearInterval(id);
+  }, [phase, bgGen]);
+
   // ─── First-touch unlock ──────────────────────────────────────────
   const firstTouchRef = useRef(false);
   useEffect(() => {
@@ -103,9 +136,15 @@ export default function TheDailyArcana() {
     return () => window.removeEventListener('pointerdown', onPointer);
   }, []);
 
-  // Once mirror loads + today's already drawn, jump to done.
+  // Resume ONCE on first load: if today was already drawn in a previous
+  // session, land straight on done. Gated by resumedRef so a mid-session
+  // persist() (e.g. a backgrounded draw landing while the user sits on
+  // idle) does NOT yank them to done — that's what the ready pill +
+  // self-notify are for.
+  const resumedRef = useRef(false);
   useEffect(() => {
-    if (mirror === undefined) return;
+    if (mirror === undefined || resumedRef.current) return;
+    resumedRef.current = true;
     if (lockedToday && todaysDraw) {
       setActiveCard({ cardId: todaysDraw.cardId, imageUrl: todaysDraw.imageUrl });
       setPhase('done');
@@ -122,6 +161,21 @@ export default function TheDailyArcana() {
     } else if (demo === 'collection') setPhase('collection');
     else if (demo === 'wall') setPhase('wall');
     else if (demo === 'room') { setRoomCardId(6); setPhase('room'); }
+    else if (demo === 'done') {
+      // Worst-case done layout: longest-reading card (19) + a real square.
+      setActiveCard({ cardId: 19, imageUrl: `${import.meta.env.BASE_URL}poster.png` });
+      setPhase('done');
+    } else if (demo === 'bgpaint') {
+      setBgGen({ cardId: 6, status: 'painting', imageUrl: null, startedAt: Date.now() });
+      setPhase('idle');
+    } else if (demo === 'bgready') {
+      setBgGen({ cardId: 6, status: 'ready', imageUrl: `${import.meta.env.BASE_URL}poster.png`, startedAt: Date.now() });
+      setPhase('idle');
+    } else if (demo === 'gen') {
+      setActiveCard({ cardId: 6, imageUrl: null });
+      setBgGen({ cardId: 6, status: 'painting', imageUrl: null, startedAt: Date.now() - 83_000 });
+      setPhase('generating');
+    }
   }, [demo]);
 
   // Ambient pause during reveal so the chime carries the moment.
@@ -144,8 +198,40 @@ export default function TheDailyArcana() {
 
   // ─── Actions ─────────────────────────────────────────────────────
 
+  // Flip from a ready card into the reveal animation → done. Shared by the
+  // "still watching" path and the idle ready-pill tap.
+  const enterReveal = (cardId: number, url: string) => {
+    setActiveCard({ cardId, imageUrl: url });
+    setBgGen(null);
+    setPhase('revealing');
+    playReveal();
+    setTimeout(() => setPhase('done'), 1800);
+  };
+
+  // 1:1 push to the player themselves when a backgrounded paint finishes —
+  // the "come back and see it" signal so the 3-minute wait isn't a stare.
+  const fireReadyNotify = (card: ArcanaCard, url: string) => {
+    if (!telegramId) return;
+    const cardName = isZh ? card.zhName : card.name;
+    events.trigger('reveal_ready', {
+      actions: [
+        {
+          type: 'notify',
+          target_user_id: String(telegramId),
+          image: { ref_url: url, prompt: 'tarot card painting' },
+          message: {
+            template: isZh
+              ? `你今夜的牌画好了 — ${cardName}`
+              : `Your card is painted — ${cardName}`,
+            variables: [],
+          },
+        },
+      ],
+    });
+  };
+
   const handleDraw = async () => {
-    if (lockedToday) return;
+    if (lockedToday || bgGen) return;
 
     playCardSlide();
     const cardId = Math.floor(Math.random() * CARDS.length);
@@ -156,6 +242,9 @@ export default function TheDailyArcana() {
 
     await new Promise((r) => setTimeout(r, 700));
     playCardThud();
+    const startedAt = Date.now();
+    setGenElapsedMs(0);
+    setBgGen({ cardId, status: 'painting', imageUrl: null, startedAt });
     setPhase('generating');
 
     try {
@@ -166,21 +255,13 @@ export default function TheDailyArcana() {
       // Preload BEFORE the phase swap that mounts <img>.
       await preloadImage(url);
 
-      setActiveCard({ cardId, imageUrl: url });
-      setPhase('revealing');
-      playReveal();
-
-      // Fire-and-forget communal event so others see incremented count.
-      events.trigger(`drew:${card.key}`);
-      // Refresh after a short delay so this player sees the +1.
-      setTimeout(() => communeStats.refresh(), 1500);
-
       // Persist + flip daily lock + freeze the public PublishedDraw view.
       // ONE save write covers all three concerns — see ArcanaSave.current
       // comment. A previous version made two separate writes (persist +
       // publishDraw) that raced for the same (session_id, user_id) slot
       // and silently clobbered each other; Wall came up empty as a
-      // result.
+      // result. Runs regardless of which screen the user is on now, so a
+      // backgrounded paint is just as durable as a watched one.
       const ts = Date.now();
       const draw: Draw = { date: today, cardId, imageUrl: url, ts };
       const published: PublishedDraw | undefined = telegramId
@@ -218,14 +299,29 @@ export default function TheDailyArcana() {
       setMirror(nextSave);
       persist(nextSave);
 
+      // Fire-and-forget communal event so others see incremented count.
+      events.trigger(`drew:${card.key}`);
+      setTimeout(() => communeStats.refresh(), 1500);
       // Refresh the wall so the player's own pull appears next time
       // they open Tonight's Pulls or the per-card Room.
       setTimeout(() => void wall.refresh(), 1500);
 
-      setTimeout(() => setPhase('done'), 1800);
+      // Mark the job ready, then branch on whether they're still watching.
+      setActiveCard({ cardId, imageUrl: url });
+      setBgGen({ cardId, status: 'ready', imageUrl: url, startedAt });
+
+      if (phaseRef.current === 'generating') {
+        // Still on the kiln screen — reveal immediately (no push needed).
+        enterReveal(cardId, url);
+      } else {
+        // They backgrounded it — leave the ready pill on idle and ping
+        // them with a 1:1 push so they know to come back.
+        fireReadyNotify(card, url);
+      }
     } catch {
       // Daily lock NOT incremented (we never call persist on failure path).
       // Surface the failure so users know to retry.
+      setBgGen(null);
       setActiveCard(null);
       setPhase('idle');
       setErrorToast(
@@ -280,7 +376,7 @@ export default function TheDailyArcana() {
     });
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!activeCard) return;
     const card = cardById(activeCard.cardId);
     const name = isZh ? card.zhName : card.name;
@@ -288,7 +384,18 @@ export default function TheDailyArcana() {
       '{NAME}', profile?.name ?? '',
     );
     const text = `${name} — ${reading.trim()}\n— The Daily Arcana · alteru.studio`;
-    try { navigator.clipboard?.writeText(text); } catch { /* no-op */ }
+    // Prefer the native share sheet (truthful "Share"); fall back to a
+    // clipboard copy with honest "copied" feedback when the platform
+    // webview blocks navigator.share.
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+    } catch {
+      // user cancelled or share blocked — fall through to clipboard
+    }
+    try { await navigator.clipboard?.writeText(text); } catch { /* no-op */ }
     setShareLabel(t('shared'));
     setTimeout(() => setShareLabel(''), 1600);
   };
@@ -302,6 +409,13 @@ export default function TheDailyArcana() {
       )
     : '';
   const todayDateLine = formatDate(today, isZh ? 'zh' : 'en');
+
+  // Kiln-screen progress: a moving mm:ss + a slowly-rotating whisper so a
+  // 3-minute paint reads as "working", never "frozen".
+  const genSecs = Math.floor(genElapsedMs / 1000);
+  const genElapsedLabel = `${Math.floor(genSecs / 60)}:${String(genSecs % 60).padStart(2, '0')}`;
+  const GEN_WHISPERS = ['gen_whisper_1', 'gen_whisper_2', 'gen_whisper_3', 'gen_whisper_4'];
+  const genWhisper = t(GEN_WHISPERS[Math.floor(genSecs / 14) % GEN_WHISPERS.length]);
 
   // ─── Collection screen short-circuit ─────────────────────────────
   if (phase === 'collection') {
@@ -326,7 +440,7 @@ export default function TheDailyArcana() {
         </div>
         <div className="da-topbar__r">
           <span className="da-topbar__date">{todayDateLine}</span>
-          {(phase === 'idle' || phase === 'done') && (
+          {phase === 'done' && (
             <button
               className="da-topbar__deck"
               onPointerDown={() => setPhase('collection')}
@@ -360,29 +474,53 @@ export default function TheDailyArcana() {
             <div className="text">{t('meta_one_pull')}</div>
           </div>
           <div className="da-idle__deckwrap">
-            <button
-              className="da-deck"
-              onPointerDown={handleDraw}
-              aria-label={t('hint_tap_deck')}
-            >
-              <DeckBack />
-            </button>
+            {bgGen ? (
+              <button
+                type="button"
+                className={`da-bgpill da-bgpill--${bgGen.status}`}
+                onClick={
+                  bgGen.status === 'ready' && bgGen.imageUrl
+                    ? () => enterReveal(bgGen.cardId, bgGen.imageUrl as string)
+                    : () => setPhase('generating')
+                }
+                aria-label={
+                  bgGen.status === 'ready' ? t('reveal_now') : t('gen_pill_painting')
+                }
+              >
+                {bgGen.status === 'ready' ? (
+                  <>
+                    <svg className="da-bgpill__spark" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                      <path d="M12 2l1.8 7.2L21 11l-7.2 1.8L12 20l-1.8-7.2L3 11l7.2-1.8z" />
+                    </svg>
+                    <span className="da-bgpill__label">{t('gen_pill_ready')}</span>
+                    <span className="da-bgpill__cta">{t('reveal_now')} →</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="da-bgpill__dots"><span /><span /><span /></span>
+                    <span className="da-bgpill__label">{t('gen_pill_painting')}</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                className="da-deck"
+                onClick={handleDraw}
+                aria-label={t('hint_tap_deck')}
+              >
+                <DeckBack />
+              </button>
+            )}
           </div>
-          <div className="da-idle__foot">
+          <div className="da-idle__foot da-idle__foot--single">
             <button
               className="da-link-ghost"
-              onPointerDown={() => setPhase('collection')}
+              onClick={() => setPhase('collection')}
             >
               {isZh ? '看收藏' : '— View Deck —'}
             </button>
-            <button
-              className="da-link-cta"
-              onPointerDown={handleDraw}
-            >
-              {t('cta_draw')} <span className="arrow" />
-            </button>
           </div>
-          {!hasFirstTouched && (
+          {!hasFirstTouched && !bgGen && (
             <div className="da-firsthint">{t('hint_tap_deck')}</div>
           )}
         </div>
@@ -404,16 +542,29 @@ export default function TheDailyArcana() {
             </div>
           </div>
           <div className="da-gen__foot">
-            <em>{t('painting_your_card')}</em>
+            <em>{phase === 'generating' ? genWhisper : t('painting_your_card')}</em>
             <div className="da-loader"><span /><span /><span /></div>
-            <div className="da-gen__est">{isZh ? '约 3 分钟' : '~ 3 min'}</div>
+            <div className="da-gen__est">
+              {phase === 'generating'
+                ? `${genElapsedLabel} · ${isZh ? '约 3 分钟' : '~3 min'}`
+                : (isZh ? '约 3 分钟' : '~ 3 min')}
+            </div>
           </div>
+          {phase === 'generating' && (
+            <button
+              type="button"
+              className="da-gen__bg"
+              onClick={() => setPhase('idle')}
+            >
+              {t('gen_wait_bg')} <span className="arr">→</span>
+            </button>
+          )}
         </div>
       )}
 
       {/* REVEAL / DONE */}
       {(phase === 'revealing' || phase === 'done') && card && (
-        <div className="da-page">
+        <div className={`da-page${phase === 'done' ? ' da-page--done' : ''}`}>
           <div className="da-reveal__topmeta">
             <div>
               {phase === 'done' && todaysDraw?.ts
@@ -454,6 +605,7 @@ export default function TheDailyArcana() {
                 type="button"
                 className="da-reveal__commune da-reveal__commune--btn"
                 onPointerDown={() => {
+                  setRoomReturn('self');
                   setRoomCardId(card.id);
                   setPhase('room');
                 }}
@@ -481,15 +633,16 @@ export default function TheDailyArcana() {
           ) : null}
           <p className="da-reveal__text">{personalizedReading}</p>
 
-          {/* Live countdown to next draw (Done only) */}
+          {/* Live countdown to next draw (Done only) — compact single line
+              so it doesn't steal vertical room from the reading. */}
           {phase === 'done' && (
             <div className="da-reveal__countdown">
-              <div className="da-reveal__countdown-label">
-                {isZh ? '距下次抽牌' : 'NEXT READING IN'}
-              </div>
-              <div className="da-reveal__countdown-value">
+              <span className="da-reveal__countdown-label">
+                {isZh ? '距下次抽牌' : 'NEXT IN'}
+              </span>
+              <span className="da-reveal__countdown-value">
                 {formatCountdown(countdownMs, isZh ? 'zh' : 'en')}
-              </div>
+              </span>
             </div>
           )}
 
@@ -531,7 +684,7 @@ export default function TheDailyArcana() {
           heartedIds={heartedIds}
           onHeart={handleHeart}
           onClose={() => setPhase(lockedToday ? 'done' : 'idle')}
-          onOpenRoom={(cardId) => { setRoomCardId(cardId); setPhase('room'); }}
+          onOpenRoom={(cardId) => { setRoomReturn('wall'); setRoomCardId(cardId); setPhase('room'); }}
         />
       )}
 
@@ -545,7 +698,9 @@ export default function TheDailyArcana() {
           selfId={telegramId ? String(telegramId) : null}
           heartedIds={heartedIds}
           onHeart={handleHeart}
-          onBack={() => setPhase(lockedToday ? 'done' : 'idle')}
+          onBack={() =>
+            setPhase(roomReturn === 'wall' ? 'wall' : lockedToday ? 'done' : 'idle')
+          }
         />
       )}
 

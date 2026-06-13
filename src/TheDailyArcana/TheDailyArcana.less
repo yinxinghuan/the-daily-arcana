@@ -31,7 +31,7 @@
 .da-topbar {
   position: absolute; top: 0; left: 0; right: 0;
   z-index: 4;
-  padding: 26px 26px 0;
+  padding: max(26px, env(safe-area-inset-top, 0px)) 26px 0;
   display: flex; align-items: center; justify-content: space-between;
 
   &__l, &__r {
@@ -153,7 +153,10 @@
   font-family: 'Montserrat', sans-serif; font-weight: 700;
   font-size: 9.5px; letter-spacing: 0.42em;
   text-transform: uppercase; color: @cream-2;
-  background: none; border: none; padding: 6px 0;
+  background: none; border: none;
+  // ≥44px touch target (was 6px 0 ≈ 22px tall).
+  padding: 12px 8px; min-height: 44px;
+  display: inline-flex; align-items: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -201,8 +204,25 @@
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.8),
     0 0 28px rgba(0, 0, 0, 0.6);
+  // Settle smaller once the reveal lands on `done`, freeing vertical room
+  // for the full reading so it never clips behind the absolute nav.
+  transition: width 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+              height 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
 
   img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+// On `done` the painting settles smaller AND the oversized roman/name head
+// shrinks (it's redundant there with the topmeta tag + the numeral painted
+// on the card). Both free vertical room so the reading — the payoff — never
+// clips behind the absolute nav, even on short iframes / longest cards.
+.da-page--done {
+  .da-reveal__cardwrap { margin-bottom: 12px; }
+  .da-reveal__cardwrap .da-card { width: 184px; height: 184px; }
+  .da-reveal__roman { font-size: 40px; }
+  .da-reveal__name { font-size: 30px; }
+  .da-reveal__head { margin-bottom: 8px; }
+  .da-reveal__head-rule { margin-top: 9px; }
+  .da-reveal__text { font-size: 18px; line-height: 1.45; margin-bottom: 10px; }
 }
 
 // ─── Phase machine root regions ───────────────────────────────────
@@ -215,7 +235,9 @@
   // Bottom padding reserves room for the absolutely-positioned reveal
   // nav row (.da-reveal__nav) so content above never visually overlaps
   // with it. ~88px = nav height (button + padding) + bottom inset.
-  padding: 86px 28px 88px;
+  // Top padding tracks the notch when run fullscreen (no-op in the
+  // in-app webview where the platform owns the status bar).
+  padding: max(86px, calc(env(safe-area-inset-top, 0px) + 60px)) 28px 88px;
   display: flex; flex-direction: column;
 }
 
@@ -448,6 +470,7 @@
     font-family: 'Cormorant Garamond', serif; font-style: italic;
     font-weight: 400; font-size: 64px; line-height: 0.9;
     color: @pink; letter-spacing: -0.02em;
+    transition: font-size 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   &__head-rule {
     flex: 0 0 28px; height: 0;
@@ -459,6 +482,7 @@
     font-weight: 400; font-size: 44px;
     color: @cream; line-height: 0.92;
     letter-spacing: 0.005em;
+    transition: font-size 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   &__kw {
     font-family: 'Montserrat', sans-serif; font-weight: 500;
@@ -662,23 +686,24 @@
   &:hover { color: @cream-2; }
 }
 
-// Live countdown block on Done screen
+// Live countdown on Done screen — compact single line so it doesn't eat
+// the vertical room the reading needs.
 .da-reveal__countdown {
-  text-align: center;
-  margin: 6px 0 18px;
-  padding: 12px 0;
+  display: flex; align-items: baseline; justify-content: center;
+  gap: 10px;
+  margin: 2px 0 12px;
+  padding: 8px 0;
   border-top: 0.5px solid @line-d;
   border-bottom: 0.5px solid @line-d;
 }
 .da-reveal__countdown-label {
   font-family: 'Montserrat', sans-serif; font-weight: 700;
-  font-size: 9px; letter-spacing: 0.5em;
+  font-size: 8.5px; letter-spacing: 0.42em;
   color: @cream-3; text-transform: uppercase;
-  margin-bottom: 4px;
 }
 .da-reveal__countdown-value {
   font-family: 'Cormorant Garamond', serif; font-style: italic;
-  font-weight: 500; font-size: 22px;
+  font-weight: 500; font-size: 17px;
   color: @pink;
   letter-spacing: 0.02em;
 }
@@ -725,7 +750,10 @@
   position: fixed; inset: 0;
   background: rgba(6, 3, 6, 0.92);
   z-index: 20;
-  display: flex; align-items: center; justify-content: center;
+  // Top-align (was align-items:center) so a card taller than the viewport
+  // scrolls from the top instead of clipping its top edge — including the
+  // close button — out of reach. (modal-overflow-flex-center-clip trap.)
+  display: flex; align-items: flex-start; justify-content: center;
   padding: 34px 28px;
   overflow-y: auto;
   animation: da-fade-in 200ms ease-out;
@@ -733,7 +761,7 @@
   &__card {
     position: relative;
     width: 100%; max-width: 340px;
-    margin: auto;
+    margin: 0 auto;
   }
   &__close {
     position: absolute; top: -12px; right: -6px;
@@ -836,10 +864,16 @@
 // right-arrow hint so it reads as "more behind this".
 .da-reveal__commune--btn {
   display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; border: none; padding: 4px 0;
-  margin: 0 auto;
+  background: transparent; border: none;
+  // Clearer "this is tappable" affordance — a hairline rule under the text
+  // + a min touch height. Was a plain line with only a tiny arrow.
+  padding: 4px 2px 7px;
+  min-height: 38px;
+  border-bottom: 0.8px solid rgba(245, 177, 199, 0.35);
+  margin: 0 auto 10px;
   color: inherit;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .da-reveal__commune-arrow {
   color: @pink; opacity: 0.85;
@@ -967,3 +1001,84 @@
   letter-spacing: 0.14em;
   color: @cream-3;
 }
+
+// ─── Background-generation surfaces ─────────────────────────────────
+
+// Idle pill that replaces the deck while a paint is in flight (or ready).
+.da-bgpill {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 30px 30px;
+  max-width: 280px;
+  border-radius: 18px;
+  background: rgba(245, 177, 199, 0.06);
+  border: 0.8px solid @line;
+  color: @cream-2;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; user-select: none;
+  transition: transform 140ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  &:active { transform: scale(0.98); }
+
+  &__label {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 19px; color: @cream-2; text-align: center;
+  }
+  &__cta {
+    font-family: 'Montserrat', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: 0.36em; text-transform: uppercase;
+    color: #2A0612; background: @pink;
+    border-radius: 999px; padding: 9px 18px;
+  }
+  &__spark { fill: @pink; display: block; }
+  &__dots {
+    display: inline-flex; gap: 5px;
+    span {
+      width: 6px; height: 6px; border-radius: 50%; background: @pink;
+      animation: da-dot 1.4s ease-in-out infinite;
+      &:nth-child(2) { animation-delay: 0.18s; }
+      &:nth-child(3) { animation-delay: 0.36s; }
+    }
+  }
+}
+.da-bgpill--ready {
+  border-color: @pink;
+  background: rgba(245, 177, 199, 0.10);
+  box-shadow: 0 0 26px rgba(245, 177, 199, 0.22);
+  animation: da-breathe 4.8s ease-in-out infinite;
+  .da-bgpill__label { color: @cream; }
+}
+
+// "Leave it painting" escape on the kiln screen.
+.da-gen__bg {
+  align-self: center;
+  margin-top: 24px;
+  min-height: 44px;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 0.6px solid @line;
+  border-radius: 999px; padding: 11px 22px;
+  color: @cream-2;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.34em; text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-color 160ms ease, color 160ms ease;
+  &:active { border-color: @pink; color: @pink; }
+  .arr { color: @pink; }
+}
+
+// Single centered View Deck link on idle (the duplicate Draw CTA was removed).
+.da-idle__foot--single { justify-content: center; }
+
+// "Everyone who held this →" link inside the DrawViewer (Wall context only).
+.da-detail__room-link {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 16px auto 0;
+  min-height: 44px;
+  background: none; border: none;
+  color: @cream-3;
+  font-family: 'Montserrat', sans-serif; font-weight: 700;
+  font-size: 9.5px; letter-spacing: 0.34em; text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  &:active { color: @pink; }
+}
+.da-detail__room-arr { color: @pink; }
