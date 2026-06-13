@@ -16,8 +16,6 @@ import { preloadImage } from './utils/preload';
 import { toRoman } from './utils/roman';
 import {
   installGlobalTapFeedback,
-  startAmbient,
-  stopAmbient,
   playCardSlide,
   playCardThud,
   playReveal,
@@ -130,7 +128,6 @@ export default function TheDailyArcana() {
       if (firstTouchRef.current) return;
       firstTouchRef.current = true;
       setHasFirstTouched(true);
-      startAmbient();
     }
     window.addEventListener('pointerdown', onPointer, { once: true });
     return () => window.removeEventListener('pointerdown', onPointer);
@@ -177,15 +174,6 @@ export default function TheDailyArcana() {
       setPhase('generating');
     }
   }, [demo]);
-
-  // Ambient pause during reveal so the chime carries the moment.
-  useEffect(() => {
-    if (phase === 'revealing' || phase === 'done') {
-      stopAmbient();
-    } else if (hasFirstTouched) {
-      startAmbient();
-    }
-  }, [phase, hasFirstTouched]);
 
   // ─── Communal counter — "X others drew this tonight" ─────────────
   // Per-card event keyed by card slug. day_user_count = unique users

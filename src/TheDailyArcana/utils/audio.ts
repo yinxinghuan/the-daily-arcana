@@ -1,16 +1,13 @@
 // WebAudio for The Daily Arcana.
 //
-// Aesthetic: a velvet-lined reading room — quiet, candle-warm, with the
-// occasional crystal-bowl tone swelling and fading. Card actions sound
-// like a deck of stiff paper cards on a felt-topped table.
+// Interaction SFX only — card actions sound like a deck of stiff paper
+// cards on a felt-topped table, plus a reveal chime. No ambient bed (the
+// looping room tone was removed — too noisy for a scroll-feed game).
 //
-// Init only on first pointerdown (Aigram preloads games; mount-time
-// audio leaks into the previous game's session). startAmbient is
-// idempotent.
+// The AudioContext inits lazily on first sound (Aigram preloads games;
+// mount-time audio would leak into the previous game's session).
 
 let ctx: AudioContext | null = null;
-let ambientStarted = false;
-let ambientStopRequested = false;
 
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -30,10 +27,6 @@ function getCtx(): AudioContext | null {
     ctx.resume().catch(() => {});
   }
   return ctx;
-}
-
-function rand(min: number, max: number): number {
-  return min + Math.random() * (max - min);
 }
 
 // ---------- One-shots ----------
@@ -202,113 +195,3 @@ export function installGlobalTapFeedback(): void {
   }, true);
 }
 
-// ---------- Ambient: candle-warm room ----------
-// A faint pink hush (room tone) that breathes in and out, with occasional
-// crystal-bowl tones drifting up and fading. Looks like silence, sounds
-// like a velvet reading room.
-
-function makeRoomTone(ac: AudioContext): { gain: GainNode; stop: () => void } {
-  const bufSize = 4 * ac.sampleRate;
-  const buf = ac.createBuffer(1, bufSize, ac.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++) {
-    d[i] = (Math.random() * 2 - 1) * 0.06;
-  }
-  const src = ac.createBufferSource();
-  src.buffer = buf;
-  src.loop = true;
-  const lp = ac.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 800;
-  lp.Q.value = 0.7;
-  const gain = ac.createGain();
-  gain.gain.value = 0;
-  src.connect(lp).connect(gain).connect(ac.destination);
-  src.start();
-  return {
-    gain,
-    stop: () => { try { src.stop(); } catch { /* already stopped */ } },
-  };
-}
-
-function playCrystalBowl(ac: AudioContext): void {
-  const now = ac.currentTime;
-  const freq = 196 + Math.random() * 80; // G3 ± ~half-octave
-  const master = ac.createGain();
-  master.gain.setValueAtTime(0.0001, now);
-  master.gain.exponentialRampToValueAtTime(0.035, now + 4);
-  master.gain.exponentialRampToValueAtTime(0.0001, now + 10);
-  const lp = ac.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 1400;
-  master.connect(lp).connect(ac.destination);
-  // Three slightly detuned sines for a glassy, just-not-pitch-perfect tone.
-  [0, 5, -5].forEach((cents, i) => {
-    const o = ac.createOscillator();
-    o.type = 'sine';
-    o.frequency.value = freq * Math.pow(2, cents / 1200);
-    const g = ac.createGain();
-    g.gain.value = 1 - i * 0.2;
-    o.connect(g).connect(master);
-    o.start(now);
-    o.stop(now + 10.2);
-  });
-  // A high triangle harmonic for shimmer.
-  const oTri = ac.createOscillator();
-  oTri.type = 'triangle';
-  oTri.frequency.value = freq * 4;
-  const gTri = ac.createGain();
-  gTri.gain.value = 0.12;
-  oTri.connect(gTri).connect(master);
-  oTri.start(now);
-  oTri.stop(now + 10.2);
-}
-
-async function ambientLoop(ac: AudioContext): Promise<void> {
-  const room = makeRoomTone(ac);
-  let roomRunning = true;
-
-  // Breathing room-tone envelope: rise / hold / fall / silence.
-  (async () => {
-    while (roomRunning && !ambientStopRequested) {
-      const rise = rand(5, 8);
-      const hold = rand(8, 16);
-      const fall = rand(6, 10);
-      const silence = rand(7, 16);
-      const peak = rand(0.03, 0.06);
-
-      const start = ac.currentTime;
-      room.gain.gain.cancelScheduledValues(start);
-      room.gain.gain.setValueAtTime(0.0001, start);
-      room.gain.gain.exponentialRampToValueAtTime(peak, start + rise);
-      room.gain.gain.setValueAtTime(peak, start + rise + hold);
-      room.gain.gain.exponentialRampToValueAtTime(0.0001, start + rise + hold + fall);
-      await new Promise<void>(r => setTimeout(r, (rise + hold + fall + silence) * 1000));
-    }
-  })();
-
-  // Crystal bowl scheduler — sparse, never overlapping.
-  while (!ambientStopRequested) {
-    const gap = rand(18, 32);
-    await new Promise<void>(r => setTimeout(r, gap * 1000));
-    if (ambientStopRequested) break;
-    playCrystalBowl(ac);
-  }
-
-  roomRunning = false;
-  room.stop();
-}
-
-export function startAmbient(): void {
-  if (ambientStarted) return;
-  const ac = getCtx();
-  if (!ac) return;
-  ambientStarted = true;
-  ambientStopRequested = false;
-  ambientLoop(ac);
-}
-
-export function stopAmbient(): void {
-  ambientStopRequested = true;
-  ambientStarted = false;
-}
