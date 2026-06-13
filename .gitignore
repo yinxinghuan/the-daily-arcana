@@ -6,5 +6,6 @@ dist
 _qa_*.png
 _ref_square.png
 _preview_assets/
+_review/
 preview.html
 gen_poster.py
