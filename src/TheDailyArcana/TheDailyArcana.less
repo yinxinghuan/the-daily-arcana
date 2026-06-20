@@ -233,6 +233,14 @@
     width: 100%; height: auto;
     aspect-ratio: 1 / 1;
     max-width: 100%; max-height: none; min-height: 0;
+    // Only animate width on the reveal→done settle. Transitioning `height`
+    // toward `auto` is uninterpolatable: the browser holds the stale explicit
+    // 288px height for 0.45s, and an explicit height overrides aspect-ratio,
+    // so the card becomes 340×288 and object-fit:cover crops the square image
+    // top & bottom — the "first reveal is cropped, fixed after Wall remount"
+    // bug. Dropping height from the transition lets aspect-ratio drive it
+    // instantly and the card stays square throughout the width grow.
+    transition: width 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .da-reveal__roman { display: none; }
   .da-reveal__head-rule { display: none; }
