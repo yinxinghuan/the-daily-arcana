@@ -231,17 +231,16 @@
   }
   .da-reveal__cardwrap .da-card {
     width: 100%; height: auto;
-    aspect-ratio: 1 / 1;
+    // NOT a forced 1:1 box. Figure cards (Death, the Magician, …) are generated
+    // via img2img with the player's avatar as the reference, and the gen API makes
+    // the OUTPUT inherit the REF's aspect ratio — so those cards come back portrait,
+    // and a 1:1 box + object-fit:cover was clipping their top & bottom. Let the image
+    // set the card's shape so the whole painting shows.
+    aspect-ratio: auto;
     max-width: 100%; max-height: none; min-height: 0;
-    // Only animate width on the reveal→done settle. Transitioning `height`
-    // toward `auto` is uninterpolatable: the browser holds the stale explicit
-    // 288px height for 0.45s, and an explicit height overrides aspect-ratio,
-    // so the card becomes 340×288 and object-fit:cover crops the square image
-    // top & bottom — the "first reveal is cropped, fixed after Wall remount"
-    // bug. Dropping height from the transition lets aspect-ratio drive it
-    // instantly and the card stays square throughout the width grow.
     transition: width 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
+  .da-reveal__cardwrap .da-card img { height: auto; object-fit: contain; }
   .da-reveal__roman { display: none; }
   .da-reveal__head-rule { display: none; }
   .da-reveal__name { font-size: 34px; }
@@ -804,11 +803,13 @@
     span:first-child { color: @pink; font-weight: 700; }
   }
   &__img {
-    width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+    // natural aspect (NOT a forced 1:1 box) — figure cards come back portrait from
+    // img2img (output inherits the avatar ref's aspect), so 1:1 cover cropped them.
+    width: 100%; overflow: hidden;
     box-shadow: 0 26px 60px rgba(0, 0, 0, 0.7);
     margin-bottom: 18px;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    img { display: block; width: 100%; height: auto; object-fit: contain; }
   }
   &__name {
     font-family: 'Cormorant Garamond', serif; font-style: italic;
