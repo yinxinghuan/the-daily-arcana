@@ -86,6 +86,13 @@ const en: Dict = {
   room_count: '{N} souls held this card',
   heart_react: 'mark with a heart',
   heart_done: 'hearted',
+
+  // In-game guestbook (notes left on a reading)
+  notes_title: 'NOTES',
+  notes_empty: 'No notes yet — be the first.',
+  notes_placeholder: 'Leave a note…',
+  notes_send: 'Send',
+  notes_open_app: 'Open in AlterU to leave a note.',
 };
 
 const zh: Dict = {
@@ -136,6 +143,13 @@ const zh: Dict = {
   room_count: '{N} 个灵魂同持此牌',
   heart_react: '用心轻按',
   heart_done: '已按心',
+
+  // 牌面留言（在一段解读下留言）
+  notes_title: '留言',
+  notes_empty: '还没有留言 — 来做第一个。',
+  notes_placeholder: '留下一句话…',
+  notes_send: '发送',
+  notes_open_app: '在 AlterU 中打开即可留言。',
 
   // Idle hints
   hint_tap_deck: '点击牌堆',

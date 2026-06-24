@@ -6,11 +6,13 @@
 // inside a 1:1 wrapper, same as the live reveal screen — so reading a
 // stranger's pull feels like the same artifact the player saw on their
 // own reveal.
+import { useState } from 'react';
 import { cardById } from '../data/cards';
 import { locale, t } from '../i18n';
 import { formatDate, timeSince } from '../utils/day';
 import { toRoman } from '../utils/roman';
 import { openAigramProfile, isInAigram } from '../../shared/runtime';
+import { threadFor, timeAgo, type GuestMessage } from '@shared/social/guestbook';
 import type { PublishedDraw } from '../types';
 
 interface Props {
@@ -22,12 +24,30 @@ interface Props {
   /** When provided (Wall context), shows a link into this card's Room.
    *  Omitted from the Room itself, where the link would be redundant. */
   onOpenRoom?: (cardId: number) => void;
+  /** Public guestbook notes, grouped by draw id (best-effort cross-user). */
+  messagesByTarget?: Map<string, GuestMessage[]>;
+  /** The viewer's OWN outgoing notes (so a just-sent note echoes instantly). */
+  myMessages?: GuestMessage[];
+  /** Current player id — renders own notes as "you", skips self profile tap. */
+  myUserId?: string | null;
+  /** Leave a note on this draw. Omit / guard via isInAigram for the compose box. */
+  onSendNote?: (text: string) => void;
 }
 
-export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose, onOpenRoom }: Props) {
+export default function DrawViewer({
+  draw, selfId, hearted, onHeart, onClose, onOpenRoom,
+  messagesByTarget, myMessages, myUserId, onSendNote,
+}: Props) {
   const isZh = locale() === 'zh';
   const card = cardById(draw.cardId);
   const isSelf = !!selfId && String(selfId) === String(draw.authorId);
+
+  const thread = threadFor(
+    draw.id,
+    messagesByTarget ?? new Map(),
+    myMessages,
+    myUserId ?? undefined,
+  );
 
   const initial = (draw.authorName || '?').slice(0, 1).toUpperCase();
 
@@ -111,6 +131,28 @@ export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose, on
           </button>
         )}
 
+        {/* Public guestbook — notes left on this draw + a compose box.
+            Best-effort cross-user display + author ping (see @shared/social). */}
+        <div className="da-notes">
+          <div className="da-notes__eyebrow">
+            {t('notes_title')}{thread.length > 0 ? ` · ${thread.length}` : ''}
+          </div>
+          {thread.length > 0 ? (
+            <ul className="da-notes__list">
+              {thread.map(m => (
+                <NoteRow key={m.id} msg={m} myUserId={myUserId} />
+              ))}
+            </ul>
+          ) : (
+            <div className="da-notes__empty">{t('notes_empty')}</div>
+          )}
+          {isInAigram && onSendNote ? (
+            <Compose onSend={onSendNote} placeholder={t('notes_placeholder')} sendLabel={t('notes_send')} />
+          ) : (
+            <div className="da-notes__empty">{t('notes_open_app')}</div>
+          )}
+        </div>
+
         {onOpenRoom && (
           <button
             type="button"
@@ -121,6 +163,68 @@ export default function DrawViewer({ draw, selfId, hearted, onHeart, onClose, on
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// One note: author chip (tappable → profile, self shows "you"), text, time.
+function NoteRow({ msg, myUserId }: { msg: GuestMessage; myUserId?: string | null }) {
+  const isZh = locale() === 'zh';
+  const mine = !!msg.fromUserId && !!myUserId && String(msg.fromUserId) === String(myUserId);
+  const name = mine ? (isZh ? '你' : 'you') : (msg.userName || (isZh ? '某人' : 'someone'));
+  const initial = (msg.userName || '?').slice(0, 1).toUpperCase();
+  const tappable = !mine && !!msg.fromUserId && isInAigram;
+  const head = (
+    <span className="da-note__head">
+      {msg.userAvatarUrl
+        ? <img className="da-note__avatar" src={msg.userAvatarUrl} alt="" draggable={false} />
+        : <span className="da-note__avatar">{initial}</span>}
+      <span className={`da-note__name${mine ? ' da-note__name--self' : ''}`}>{name}</span>
+      <span className="da-note__time">{timeAgo(msg.ts, isZh ? 'zh' : 'en')}</span>
+    </span>
+  );
+  return (
+    <li className="da-note">
+      {tappable ? (
+        <button
+          type="button"
+          className="da-note__chip"
+          onClick={(e) => { e.stopPropagation(); openAigramProfile(msg.fromUserId!); }}
+        >
+          {head}
+        </button>
+      ) : head}
+      <p className="da-note__text">{msg.text}</p>
+    </li>
+  );
+}
+
+// Compose box — controlled input + send; clicks don't bubble to the backdrop.
+function Compose({ onSend, placeholder, sendLabel }: { onSend: (text: string) => void; placeholder: string; sendLabel: string }) {
+  const [text, setText] = useState('');
+  const submit = () => {
+    const v = text.trim();
+    if (!v) return;
+    onSend(v);
+    setText('');
+  };
+  return (
+    <div className="da-compose" onClick={e => e.stopPropagation()}>
+      <input
+        className="da-compose__input"
+        value={text}
+        maxLength={140}
+        placeholder={placeholder}
+        onChange={e => setText(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') submit(); }}
+      />
+      <button
+        className="da-compose__send"
+        disabled={!text.trim()}
+        onClick={submit}
+      >
+        {sendLabel}
+      </button>
     </div>
   );
 }

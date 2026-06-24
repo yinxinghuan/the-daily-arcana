@@ -10,6 +10,7 @@ import { cardById } from '../data/cards';
 import { locale, t } from '../i18n';
 import { formatDate, timeSince } from '../utils/day';
 import DrawViewer from './DrawViewer';
+import type { GuestMessage } from '@shared/social/guestbook';
 import type { PublishedDraw } from '../types';
 
 interface Props {
@@ -22,10 +23,15 @@ interface Props {
   onClose: () => void;
   /** Tap a card row to descend into that arcanum's Room (filtered view). */
   onOpenRoom: (cardId: number) => void;
+  /** Guestbook wiring — threaded into DrawViewer. */
+  messagesByTarget?: Map<string, GuestMessage[]>;
+  myMessages?: GuestMessage[];
+  onSendNote?: (draw: PublishedDraw, text: string) => void;
 }
 
 export default function Wall({
   entries, loaded, todayKey, selfId, heartedIds, onHeart, onClose, onOpenRoom,
+  messagesByTarget, myMessages, onSendNote,
 }: Props) {
   const isZh = locale() === 'zh';
   const [selected, setSelected] = useState<PublishedDraw | null>(null);
@@ -130,6 +136,10 @@ export default function Wall({
           onHeart={() => onHeart(selected)}
           onClose={() => setSelected(null)}
           onOpenRoom={onOpenRoom}
+          messagesByTarget={messagesByTarget}
+          myMessages={myMessages}
+          myUserId={selfId}
+          onSendNote={onSendNote ? (text) => onSendNote(selected, text) : undefined}
         />
       )}
     </div>

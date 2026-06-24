@@ -1,3 +1,5 @@
+import type { GuestMessage } from '@shared/social/guestbook';
+
 export type DayKey = string; // YYYY-MM-DD in local time
 
 export type Phase =
@@ -70,6 +72,10 @@ export interface ArcanaSave {
    *  spent on those past gen-image cards were wasted. 2026-06-13:
    *  promoted to an array so every drawn card stays on the wall. */
   published?: PublishedDraw[];
+  /** Public guestbook notes this user has LEFT on draws (their own or
+   *  others'). Stored in the sender's own blob; the wall aggregates every
+   *  readable blob's notes by target. Capped/managed by @shared/social. */
+  messages?: GuestMessage[];
 }
 
 /**

@@ -22,6 +22,11 @@ import {
   playReveal,
 } from './utils/audio';
 import { t, locale } from './i18n';
+import {
+  appendMessage,
+  guestbookNotifyConfig,
+  newMessage,
+} from '@shared/social/guestbook';
 import type { ArcanaSave, Phase, Draw, PublishedDraw, ArcanaCard } from './types';
 import './TheDailyArcana.less';
 
@@ -389,6 +394,43 @@ export default function TheDailyArcana() {
     });
   };
 
+  // Leave a public note on a published draw. Mirrors handleHeart: store the
+  // note in MY OWN blob (the wall aggregates everyone's by target) and ping
+  // the draw's author once per target per session. Skip self & already-pinged.
+  const noteNotified = useRef<Set<string>>(new Set());
+  const handleSendNote = (draw: PublishedDraw, text: string) => {
+    const msg = newMessage(draw.id, draw.authorId, text);
+    if (!msg) return;
+
+    // Optimistic persist into the local mirror (same shape as handleHeart).
+    setMirror(prev => {
+      const base = prev ?? { history: [] };
+      const next = appendMessage(base as ArcanaSave, msg);
+      persist(next);
+      return next;
+    });
+
+    const self = telegramId ? String(telegramId) : null;
+    if (draw.authorId && draw.authorId !== self && !noteNotified.current.has(draw.id)) {
+      noteNotified.current.add(draw.id);
+      events.trigger(
+        'arcana_note',
+        guestbookNotifyConfig({
+          toUserId: draw.authorId,
+          refUrl: draw.imageUrl,
+          note: text,
+          template: isZh
+            ? '{sender_name} 在你的牌上留了言'
+            : '{sender_name} left a note on your reading',
+          imagePrompt: 'tarot card painting',
+        }),
+      );
+    }
+
+    // Refresh the wall so the note surfaces cross-user once it propagates.
+    setTimeout(() => void wall.refresh(), 1500);
+  };
+
   const handleShare = async () => {
     if (!activeCard) return;
     const card = cardById(activeCard.cardId);
@@ -707,6 +749,9 @@ export default function TheDailyArcana() {
           onHeart={handleHeart}
           onClose={() => setPhase(lockedToday ? 'done' : 'idle')}
           onOpenRoom={(cardId) => { setRoomReturn('wall'); setRoomCardId(cardId); setPhase('room'); }}
+          messagesByTarget={wall.messagesByTarget}
+          myMessages={mirror?.messages}
+          onSendNote={handleSendNote}
         />
       )}
 
@@ -723,6 +768,9 @@ export default function TheDailyArcana() {
           onBack={() =>
             setPhase(roomReturn === 'wall' ? 'wall' : lockedToday ? 'done' : 'idle')
           }
+          messagesByTarget={wall.messagesByTarget}
+          myMessages={mirror?.messages}
+          onSendNote={handleSendNote}
         />
       )}
 

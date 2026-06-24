@@ -12,6 +12,7 @@ import { locale, t } from '../i18n';
 import { formatDate, timeSince } from '../utils/day';
 import { toRoman } from '../utils/roman';
 import DrawViewer from './DrawViewer';
+import type { GuestMessage } from '@shared/social/guestbook';
 import type { PublishedDraw } from '../types';
 
 interface Props {
@@ -24,10 +25,15 @@ interface Props {
   heartedIds: Set<string>;
   onHeart: (draw: PublishedDraw) => void;
   onBack: () => void;
+  /** Guestbook wiring — threaded into DrawViewer. */
+  messagesByTarget?: Map<string, GuestMessage[]>;
+  myMessages?: GuestMessage[];
+  onSendNote?: (draw: PublishedDraw, text: string) => void;
 }
 
 export default function Room({
   cardId, entries, loaded, todayKey, selfId, heartedIds, onHeart, onBack,
+  messagesByTarget, myMessages, onSendNote,
 }: Props) {
   const isZh = locale() === 'zh';
   const card = cardById(cardId);
@@ -138,6 +144,10 @@ export default function Room({
           hearted={heartedIds.has(selected.id)}
           onHeart={() => onHeart(selected)}
           onClose={() => setSelected(null)}
+          messagesByTarget={messagesByTarget}
+          myMessages={myMessages}
+          myUserId={selfId}
+          onSendNote={onSendNote ? (text) => onSendNote(selected, text) : undefined}
         />
       )}
     </div>

@@ -15,6 +15,7 @@ import {
 } from '@shared/runtime';
 import { cardById } from '../data/cards';
 import { locale } from '../i18n';
+import { messagesByTarget, type GuestMessage } from '@shared/social/guestbook';
 import type { ArcanaSave, Draw, PublishedDraw } from '../types';
 
 interface SaveRow {
@@ -163,6 +164,10 @@ function parseRow(row: SaveRow, viewerIsZh: boolean): PublishedDraw[] {
  */
 export function useWall(localSave?: ArcanaSave | null) {
   const [serverEntries, setServerEntries] = useState<PublishedDraw[]>([]);
+  // Public guestbook notes left on draws, grouped by PublishedDraw id
+  // (best-effort cross-user aggregation, same read window as the wall).
+  // Note authors carry their resolved profile (name/avatar).
+  const [messagesByTarget_, setMessagesByTarget] = useState<Map<string, GuestMessage[]>>(new Map());
   const [loaded, setLoaded] = useState(false);
   const inflight = useRef(false);
 
@@ -194,10 +199,19 @@ export function useWall(localSave?: ArcanaSave | null) {
           draws.push(d);
         }
       }
-      // Hydrate missing author info via the profile-info endpoint.
-      const idsMissing = Array.from(new Set(
-        draws.filter(d => !d.authorAvatarUrl || !d.authorName).map(d => d.authorId),
-      ));
+      // Public guestbook notes left on draws (best-effort, same read
+      // window). Reuse the SAME rows — do NOT add a second fetch.
+      const msgs = messagesByTarget(rows as Parameters<typeof messagesByTarget>[0]);
+
+      // Hydrate profiles for draw authors AND note authors in one batch.
+      const idSet = new Set<string>();
+      for (const d of draws) {
+        if (!d.authorAvatarUrl || !d.authorName) idSet.add(d.authorId);
+      }
+      for (const list of msgs.values()) {
+        for (const m of list) if (m.fromUserId) idSet.add(m.fromUserId);
+      }
+      const idsMissing = Array.from(idSet);
       const infos = await Promise.all(idsMissing.map(fetchUserInfo));
       const infoMap = new Map(idsMissing.map((id, i) => [id, infos[i]]));
       const hydrated = draws.map(d => ({
@@ -207,6 +221,19 @@ export function useWall(localSave?: ArcanaSave | null) {
       }));
       hydrated.sort((a, b) => b.ts - a.ts);
       setServerEntries(hydrated);
+
+      // Stamp each note with its author's resolved profile, keyed by target.
+      const msgsWithProfiles = new Map<string, GuestMessage[]>();
+      for (const [target, list] of msgs) {
+        msgsWithProfiles.set(
+          target,
+          list.map(m => {
+            const p = m.fromUserId ? infoMap.get(m.fromUserId) : undefined;
+            return { ...m, userName: p?.name, userAvatarUrl: p?.head_url };
+          }),
+        );
+      }
+      setMessagesByTarget(msgsWithProfiles);
     } catch {
       // Keep stale entries on network error.
     } finally {
@@ -236,5 +263,5 @@ export function useWall(localSave?: ArcanaSave | null) {
     return merged;
   }, [serverEntries, localSave]);
 
-  return { entries, loaded, refresh };
+  return { entries, loaded, refresh, messagesByTarget: messagesByTarget_ };
 }
