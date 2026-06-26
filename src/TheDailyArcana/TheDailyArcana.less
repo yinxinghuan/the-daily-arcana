@@ -844,9 +844,11 @@
   background: transparent; border: none; padding: 0;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   color: @cream-2;
+  min-width: 0; max-width: 100%; // long-username truncation
   &:disabled { cursor: default; }
 }
 .da-detail__byline-avatar {
+  flex-shrink: 0; // long-username truncation
   display: inline-flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; border-radius: 50%;
   background: @cream-4; color: @ground; overflow: hidden;
@@ -858,6 +860,7 @@
   font-family: 'Montserrat', sans-serif; font-weight: 600;
   font-size: 10.5px; letter-spacing: 0.24em;
   color: @cream-2; text-transform: uppercase;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; // long-username truncation
 }
 .da-detail__byline-name--self {
   color: @pink;
@@ -981,6 +984,7 @@
 }
 .da-wall__cell {
   display: flex; flex-direction: column; gap: 10px;
+  min-width: 0; // long-username truncation — let grid track bound the byline
 }
 .da-wall__cell-img {
   position: relative;
@@ -1009,11 +1013,13 @@
 }
 .da-wall__cell-byline {
   display: flex; align-items: center; gap: 6px;
+  min-width: 0; // long-username truncation
   font-family: 'Montserrat', sans-serif; font-weight: 600;
   font-size: 9px; letter-spacing: 0.18em;
   color: @cream-3; text-transform: uppercase;
 }
 .da-wall__cell-avatar {
+  flex-shrink: 0; // long-username truncation
   display: inline-flex; align-items: center; justify-content: center;
   width: 18px; height: 18px; border-radius: 50%;
   background: @cream-4; color: @ground; overflow: hidden;
@@ -1021,11 +1027,15 @@
   font-size: 9px;
   img { width: 100%; height: 100%; object-fit: cover; }
 }
-.da-wall__cell-author { color: @cream-2; }
-.da-wall__cell-sep { color: @cream-4; }
+.da-wall__cell-author {
+  color: @cream-2;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; // long-username truncation
+}
+.da-wall__cell-sep { color: @cream-4; flex-shrink: 0; }
 .da-wall__cell-age {
   letter-spacing: 0.14em;
   color: @cream-3;
+  flex-shrink: 0; // long-username truncation
 }
 
 // ─── Background-generation surfaces ─────────────────────────────────
