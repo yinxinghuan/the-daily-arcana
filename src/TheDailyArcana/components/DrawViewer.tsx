@@ -15,6 +15,8 @@ import { openAigramProfile, isInAigram } from '../../shared/runtime';
 import { threadFor, timeAgo, type GuestMessage } from '@shared/social/guestbook';
 import type { PublishedDraw } from '../types';
 
+const ALTERU_APP_URL = 'https://apps.apple.com/app/id6769646546';
+
 interface Props {
   draw: PublishedDraw;
   selfId?: string | null;
@@ -149,7 +151,12 @@ export default function DrawViewer({
           {isInAigram && onSendNote ? (
             <Compose onSend={onSendNote} placeholder={t('notes_placeholder')} sendLabel={t('notes_send')} />
           ) : (
-            <div className="da-notes__empty">{t('notes_open_app')}</div>
+            <div className="da-notes__empty da-notes__download">
+              <span>{t('notes_open_app')}</span>
+              <a href={ALTERU_APP_URL} target="_blank" rel="noopener noreferrer">
+                {t('download_alteru')}
+              </a>
+            </div>
           )}
         </div>
 

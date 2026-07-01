@@ -93,6 +93,7 @@ const en: Dict = {
   notes_placeholder: 'Leave a note…',
   notes_send: 'Send',
   notes_open_app: 'Open in AlterU to leave a note.',
+  download_alteru: 'Get AlterU on the App Store',
 };
 
 const zh: Dict = {
@@ -150,6 +151,7 @@ const zh: Dict = {
   notes_placeholder: '留下一句话…',
   notes_send: '发送',
   notes_open_app: '在 AlterU 中打开即可留言。',
+  download_alteru: '下载 AlterU',
 
   // Idle hints
   hint_tap_deck: '点击牌堆',
