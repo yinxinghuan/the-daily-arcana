@@ -8,9 +8,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   callAigramAPI,
-  isInAigram,
+  isInAigramNow,
   getGameUuid,
-  telegramId,
+  getTelegramId,
   type AigramResponse,
 } from '@shared/runtime';
 import { cardById } from '../data/cards';
@@ -173,7 +173,7 @@ export function useWall(localSave?: ArcanaSave | null) {
 
   const refresh = useCallback(async () => {
     if (inflight.current) return;
-    if (!isInAigram) {
+    if (!isInAigramNow()) {
       setLoaded(true);
       return;
     }
@@ -250,12 +250,12 @@ export function useWall(localSave?: ArcanaSave | null) {
   const entries = useMemo<PublishedDraw[]>(() => {
     const map = new Map<string, PublishedDraw>();
     for (const e of serverEntries) map.set(e.id, e);
-    if (telegramId && localSave?.published && Array.isArray(localSave.published)) {
+    if (getTelegramId()! && localSave?.published && Array.isArray(localSave.published)) {
       for (const e of localSave.published) {
         if (!isWellFormedDraw(e)) continue;
         // Force the authorId to the current user — covers stale rows
         // written under a different identity during testing.
-        map.set(e.id, { ...e, authorId: String(telegramId) });
+        map.set(e.id, { ...e, authorId: String(getTelegramId()!) });
       }
     }
     const merged = [...map.values()];

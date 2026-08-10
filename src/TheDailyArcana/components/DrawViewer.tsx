@@ -11,7 +11,7 @@ import { cardById } from '../data/cards';
 import { locale, t } from '../i18n';
 import { formatDate, timeSince } from '../utils/day';
 import { toRoman } from '../utils/roman';
-import { openAigramProfile, isInAigram } from '../../shared/runtime';
+import { openAigramProfile, isInAigramNow } from '../../shared/runtime';
 import { threadFor, timeAgo, type GuestMessage } from '@shared/social/guestbook';
 import type { PublishedDraw } from '../types';
 
@@ -54,7 +54,7 @@ export default function DrawViewer({
   const initial = (draw.authorName || '?').slice(0, 1).toUpperCase();
 
   const openProfile = () => {
-    if (isSelf || !isInAigram || !draw.authorId) return;
+    if (isSelf || !isInAigramNow() || !draw.authorId) return;
     openAigramProfile(draw.authorId);
   };
 
@@ -97,7 +97,7 @@ export default function DrawViewer({
               type="button"
               className="da-detail__byline-btn"
               onClick={openProfile}
-              disabled={!isInAigram}
+              disabled={!isInAigramNow()}
             >
               {draw.authorAvatarUrl ? (
                 <img
@@ -148,7 +148,7 @@ export default function DrawViewer({
           ) : (
             <div className="da-notes__empty">{t('notes_empty')}</div>
           )}
-          {isInAigram && onSendNote ? (
+          {isInAigramNow() && onSendNote ? (
             <Compose onSend={onSendNote} placeholder={t('notes_placeholder')} sendLabel={t('notes_send')} />
           ) : (
             <div className="da-notes__empty da-notes__download">
@@ -180,7 +180,7 @@ function NoteRow({ msg, myUserId }: { msg: GuestMessage; myUserId?: string | nul
   const mine = !!msg.fromUserId && !!myUserId && String(msg.fromUserId) === String(myUserId);
   const name = mine ? (isZh ? '你' : 'you') : (msg.userName || (isZh ? '某人' : 'someone'));
   const initial = (msg.userName || '?').slice(0, 1).toUpperCase();
-  const tappable = !mine && !!msg.fromUserId && isInAigram;
+  const tappable = !mine && !!msg.fromUserId && isInAigramNow();
   const head = (
     <span className="da-note__head">
       {msg.userAvatarUrl

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { callAigramAPI, telegramId, isInAigram } from '@shared/runtime/bridge';
+import { callAigramAPI, getTelegramId, isInAigramNow } from '@shared/runtime/bridge';
 
 interface SelfProfile {
   name?: string;
@@ -27,11 +27,11 @@ export function useSelfProfile(): SelfProfile | null {
 
   useEffect(() => {
     let cancelled = false;
-    if (!isInAigram || !telegramId) return;
+    if (!isInAigramNow() || !getTelegramId()!) return;
     (async () => {
       try {
         const r = await callAigramAPI<AigramResponse<AigramUserData>>(
-          `/note/telegram/user/get/info/by/telegram_id?telegram_id=${encodeURIComponent(telegramId)}`,
+          `/note/telegram/user/get/info/by/telegram_id?telegram_id=${encodeURIComponent(getTelegramId()!)}`,
           'GET',
         );
         if (cancelled) return;

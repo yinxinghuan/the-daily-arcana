@@ -11,11 +11,11 @@
 // is the source of truth for "I drew today". The wall just sees one less
 // row for the next refresh.
 
-import { getGameUuid, postAigramAPI, telegramId, isInAigram } from '@shared/runtime';
+import { getGameUuid, postAigramAPI, getTelegramId, isInAigramNow } from '@shared/runtime';
 import type { PublishedDraw } from '../types';
 
 export async function publishDraw(draw: PublishedDraw): Promise<void> {
-  if (!isInAigram || !telegramId) return;
+  if (!isInAigramNow() || !getTelegramId()!) return;
   const sessionId = getGameUuid();
   if (!sessionId) return;
   try {

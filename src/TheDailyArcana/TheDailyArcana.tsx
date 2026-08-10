@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGameSave } from '@shared/save';
-import { useGameEvent, useGameStats, telegramId } from '@shared/runtime';
+import { useGameEvent, useGameStats, getTelegramId } from '@shared/runtime';
 import DeckBack from './components/DeckBack';
 import CardFace from './components/CardFace';
 import Collection from './components/Collection';
@@ -205,13 +205,13 @@ export default function TheDailyArcana() {
   // 1:1 push to the player themselves when a backgrounded paint finishes —
   // the "come back and see it" signal so the 3-minute wait isn't a stare.
   const fireReadyNotify = (card: ArcanaCard, url: string) => {
-    if (!telegramId) return;
+    if (!getTelegramId()!) return;
     const cardName = isZh ? card.zhName : card.name;
     events.trigger('reveal_ready', {
       actions: [
         {
           type: 'notify',
-          target_user_id: String(telegramId),
+          target_user_id: String(getTelegramId()!),
           image: { ref_url: url, prompt: 'tarot card painting' },
           message: {
             template: isZh
@@ -285,10 +285,10 @@ export default function TheDailyArcana() {
         reading: finalReading,
         locale: isZh ? 'zh' : 'en',
       };
-      const published: PublishedDraw | undefined = telegramId
+      const published: PublishedDraw | undefined = getTelegramId()!
         ? {
-            id: `${telegramId}:${today}`,
-            authorId: String(telegramId),
+            id: `${getTelegramId()!}:${today}`,
+            authorId: String(getTelegramId()!),
             authorName: profile?.name,
             authorAvatarUrl: profile?.avatarUrl,
             date: today,
@@ -357,7 +357,7 @@ export default function TheDailyArcana() {
    // No-op for own draws or already-hearted ids.
   const handleHeart = (draw: PublishedDraw) => {
     if (heartedIds.has(draw.id)) return;
-    if (telegramId && String(telegramId) === String(draw.authorId)) return;
+    if (getTelegramId()! && String(getTelegramId()!) === String(draw.authorId)) return;
 
     // Optimistic update.
     setMirror(prev => {
@@ -410,7 +410,7 @@ export default function TheDailyArcana() {
       return next;
     });
 
-    const self = telegramId ? String(telegramId) : null;
+    const self = getTelegramId()! ? String(getTelegramId()!) : null;
     if (draw.authorId && draw.authorId !== self && !noteNotified.current.has(draw.id)) {
       noteNotified.current.add(draw.id);
       events.trigger(
@@ -744,7 +744,7 @@ export default function TheDailyArcana() {
           entries={wall.entries}
           loaded={wall.loaded}
           todayKey={today}
-          selfId={telegramId ? String(telegramId) : null}
+          selfId={getTelegramId()! ? String(getTelegramId()!) : null}
           heartedIds={heartedIds}
           onHeart={handleHeart}
           onClose={() => setPhase(lockedToday ? 'done' : 'idle')}
@@ -762,7 +762,7 @@ export default function TheDailyArcana() {
           entries={wall.entries}
           loaded={wall.loaded}
           todayKey={today}
-          selfId={telegramId ? String(telegramId) : null}
+          selfId={getTelegramId()! ? String(getTelegramId()!) : null}
           heartedIds={heartedIds}
           onHeart={handleHeart}
           onBack={() =>
