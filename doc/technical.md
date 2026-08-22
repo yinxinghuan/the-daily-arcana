@@ -26,6 +26,7 @@
 - `src/shared/runtime/useUpload.ts`：游戏源码模块。
 - `src/shared/runtime/useChat.ts`：游戏源码模块。
 - `src/shared/runtime/useGenImage.ts`：游戏源码模块。
+- `src/shared/runtime/media.ts`：AlterU 媒体任务提交、轮询、结构化错误、尺寸规整和幂等键。
 - `src/shared/runtime/bridge.ts`：游戏源码模块。
 - `src/shared/runtime/game-id.ts`：游戏源码模块。
 - `src/shared/runtime/useGameEvent.ts`：游戏源码模块。
@@ -67,7 +68,7 @@
 - 多语言：包含 i18n / locale 检测或 `t()` 文案函数。
 - 存储：使用 localStorage、useGameSave 或 persist 保存分数、收藏、墙数据或本地状态。
 - Aigram 运行时：接入 `@shared/runtime` 或平台桥接能力，用于用户、资料页、分享、通知或平台 API。
-- AI / 生成接口：包含图像生成、视觉识别、ref_url 或 img2img 相关流程。
+- AI / 生成接口：人物牌有公网头像时由 `useGenImage` 走单引用 `edit`；无人物牌或无头像时走零引用 `text`。两者均固定 1024×1024、UUID 幂等键、任务轮询和最多一次受控重试，不再调用旧图片转发接口。每日解读仍走现有 `game-chat` LLM，图片通知/分享的 `ref_url` 只是已生成媒体引用，不是生成接口。
 - 社交墙 / 归档：包含 wall、gallery、feed 或 archive 数据流与浏览界面。
 
 ## 4. 扩展点
